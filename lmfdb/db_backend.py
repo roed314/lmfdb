@@ -3573,7 +3573,7 @@ class PostgresDatabase(PostgresBase):
                                          SQL(", ").join(extra_columns))
                 self._execute(creator)
                 self.grant_select(name+"_extras")
-            creator = SQL('CREATE TABLE {0} (cols jsonb, values jsonb, count bigint)')
+            creator = SQL('CREATE TABLE {0} (cols jsonb, values jsonb, count bigint, extra boolean)')
             creator = creator.format(Identifier(name+"_counts"))
             self._execute(creator)
             self.grant_select(name+"_counts")
