@@ -15,6 +15,7 @@ IMPORTANT:
 * Once the RCS knowls are written, adjust the wording at the top of the statistics page to make it clearer what is included in the stats and include explicit links to completeness and rigor knowls.
 * Add dynamic character knowls; include orbit index for orbit label (David)
 * Add orbit index on character pages (David)
+* Analytic conductor is off by a constant factor (should be N||k||^2/(16*pi^2))
 
 FINAL CHECKS:
 * Make sure indexes are appropriate (Edgar)
