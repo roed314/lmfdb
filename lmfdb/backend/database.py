@@ -25,7 +25,7 @@ You can search using the methods ``search``, ``lucky`` and ``lookup``::
 
 """
 
-import datetime, logging, os, random, re, signal, subprocess, tempfile, time, traceback
+import datetime, inspect, logging, os, random, re, shutil, signal, subprocess, tempfile, time, traceback
 from collections import defaultdict, Counter
 
 from psycopg2 import connect, DatabaseError, InterfaceError, ProgrammingError
@@ -3326,11 +3326,21 @@ class PostgresTable(SearchTable):
         """
         self._db.log_db_change(operation, tablename=self.search_table, **data)
 
+    def _check_verifications_enabled(self):
+        if not self._db.is_verifying:
+            raise ValueError("Verification not enabled by default; import db from lmfdb.verify to enable")
+        if self._verifier is None:
+            raise ValueError("No verifications defined for this table; add a class {0} in lmfdb/verify/{0}.py to enable".format(self.search_table))
+
+
     def verify(self, speedtype="all", check=None, label=None, ratio=None, logdir=None, parallel=4, follow=['errors', 'log', 'progress'], poll_interval=0.1, debug=False):
         """
         Run the tests on this table defined in the lmfdb/verify folder.
 
         If parallel is True, sage should be in your path or aliased appropriately.
+
+        Note that if check is not provided and parallel is False, no output will be printed, files
+        will still be written to the log directory.
 
         INPUT:
 
@@ -3350,10 +3360,7 @@ class PostgresTable(SearchTable):
         - ``poll_interval`` -- The polling interval to follow the output if executed in parallel.
         - ``debug`` -- if False, will redirect stdout and stderr for the spawned process to /dev/null.
         """
-        if not self._db.is_verifying:
-            raise ValueError("Verification not enabled by default; import db from lmfdb.verify to enable")
-        if self._verifier is None:
-            raise ValueError("No verifications defined for this table; add a class {0} in lmfdb/verify/{0}.py to enable".format(self.search_table))
+        self._check_verifications_enabled()
         if ratio is not None and check is None:
             raise ValueError("You can only provide a ratio if you specify a check")
         lmfdb_root = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..'))
@@ -3365,14 +3372,29 @@ class PostgresTable(SearchTable):
             parallel = 0
         verifier = self._verifier
         if check is None:
+            olddir = os.path.join(logdir, "old")
+            if not os.path.exists(olddir):
+                os.makedirs(olddir)
+            def move_to_old(tname):
+                for suffix in ['.log', '.errors', '.progress', '.started', '.done']:
+                    filename = os.path.join(logdir, tname + suffix)
+                    if os.path.exists(filename):
+                        n = 0
+                        oldfile = os.path.join(olddir, tname + str(n) + suffix)
+                        while os.path.exists(oldfile):
+                            n += 1
+                            oldfile = os.path.join(olddir, tname + str(n) + suffix)
+                        shutil.move(filename, oldfile)
             if speedtype == 'all':
                 types = verifier.all_types()
             else:
                 types = [verifier.speedtype(speedtype)]
+            tabletypes = ["%s.%s" % (self.search_table, typ.shortname) for typ in types if verifier.get_checks_count(typ) > 0]
+            if len(tabletypes) == 0:
+                raise ValueError("No checks of type %s defined for %s" % (", ".join(typ.__name__ for typ in types), self.search_table))
+            for tname in tabletypes:
+                move_to_old(tname)
             if parallel:
-                tabletypes = ["%s.%s" % (self.search_table, typ.shortname) for typ in types if verifier.get_checks_count(typ) > 0]
-                if len(tabletypes) == 0:
-                    raise ValueError("No checks of type %s defined for %s" % (", ".join(typ.__name__ for typ in types), self.search_table))
                 parallel = min(parallel, len(tabletypes))
                 for tabletype in tabletypes:
                     print "Starting %s" % tabletype
@@ -3408,6 +3430,56 @@ class PostgresTable(SearchTable):
                 msg += " for label %s" % label
             print msg
             verifier.run_check(check, label=label, ratio=ratio)
+
+    def list_verifications(self, details=True):
+        """
+        Lists all verification functions available for this table.
+
+        INPUT:
+
+        - ``details`` -- if True, details such as the docstring, ratio of rows on which the test
+            is run by default and the constraint on rows for which this test is run are shown.
+        """
+        self._check_verifications_enabled()
+        green = '\033[92m'
+        red = '\033[91m'
+        stop = '\033[0m'
+        def show_check(name, check, typ):
+            if typ.__name__ in ['overall', 'fast']:
+                color = green
+            else:
+                color = red
+            print '* ' + color + name + stop
+            if details:
+                if check.ratio < 1:
+                    ratio_fmt = 'Ratio of rows: {val:.2%}'
+                else:
+                    ratio_fmt = 'Ratio of rows: {val:.0%}'
+                for line in inspect.getdoc(check).split('\n'):
+                    print ' '*4 + line
+                for attr, fmt in [
+                        ('disabled', 'Disabled'),
+                        ('ratio', ratio_fmt),
+                        ('max_failures', 'Max failures: {val}'),
+                        ('timeout', 'Timeout after: {val}s'),
+                        ('constraint', 'Constraint: {val}'),
+                        ('projection', 'Projection: {val}'),
+                        ('report_slow', 'Report slow test after: {val}s'),
+                        ('max_slow', 'Maximum number of slow tests: {val}')]:
+                    cattr = getattr(check, attr, None)
+                    tattr = getattr(typ, attr, None)
+                    if cattr is not None and cattr != tattr:
+                        print ' '*6 + fmt.format(val=cattr)
+        verifier = self._verifier
+        for typ in ['over', 'fast', 'long', 'slow']:
+            color = green if typ in ['over', 'fast'] else red
+            typ = verifier.speedtype(typ)
+            if verifier.get_checks_count(typ) > 0:
+                name = color + typ.__name__ + stop
+                print "\n{0} checks (default {1:.0%} of rows, {2}s timeout)".format(name, float(typ.ratio), typ.timeout)
+                for checkname, check in inspect.getmembers(verifier.__class__):
+                    if isinstance(check, typ):
+                        show_check(checkname, check, typ)
 
 class PostgresStatsTable(PostgresBase):
     """
