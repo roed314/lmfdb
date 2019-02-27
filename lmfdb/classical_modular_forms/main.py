@@ -170,7 +170,8 @@ favorite_newform_labels = [[('23.1.b.a','Smallest analytic conductor'),
                             ('8.21.d.b','Large coefficient ring index'),
                             ('3600.1.e.a','Many zeros in q-expansion'),
                             ('983.2.c.a','Large dimension'),
-                            ('3997.1.cz.a','Largest projective image')]]
+                            ('3997.1.cz.a','Largest projective image'),
+                            ('7524.2.l.b', 'CM-form by Q(-627) and many inner twists')]]
 favorite_space_labels = [[('1161.1.i', 'Has A5, S4, D3 forms'),
                           ('23.10', 'Mile high 11s'),
                           ('3311.1.h', 'Most weight 1 forms'),
@@ -237,27 +238,30 @@ def parse_n(info, newform, primes_only):
                 maxp = next_prime(maxp)
             p = next_prime(p)
     errs = []
-    info['default_nrange'] = '2-%s'%maxp
-    nrange = info.get('n', '2-%s'%maxp)
+    info['default_nrange'] = '2-%s' % maxp
+    nrange = info.get('n', '2-%s' % maxp)
     try:
-        info['CC_n'] = integer_options(nrange, 1000)
+        info['CC_n'] = integer_options(nrange, newform.an_cc_bound)
     except (ValueError, TypeError) as err:
         info['CC_n'] = range(2,maxp+1)
         if err.args and err.args[0] == 'Too many options':
-            errs.append(r"Only \(a_n\) up to %s are available"%(newform.cqexp_prec-1))
+            errs.append(r"Only \(a_n\) up to %s are available" % (newform.an_cc_bound))
         else:
             errs.append("<span style='color:black'>n</span> must be an integer, range of integers or comma separated list of integers")
     if min(info['CC_n']) < 1:
         errs.append(r"We only show \(a_n\) with n at least 1")
         info['CC_n'] = [n for n in info['CC_n'] if n >= 1]
+    if max(info['CC_n']) > newform.an_cc_bound:
+        errs.append(r"Only \(a_n\) up to %s are available; limiting to \(n \le %d\)" % (newform.an_cc_bound, newform.an_cc_bound))
+        info['CC_n'] = [n for n in info['CC_n'] if n <= newform.an_cc_bound]
     if primes_only:
         info['CC_n'] = [n for n in info['CC_n'] if ZZ(n).is_prime() and newform.level % n != 0]
         if len(info['CC_n']) == 0:
             errs.append("No good primes within n range; resetting to default")
             info['CC_n'] = [n for n in prime_range(maxp+1) if newform.level % n != 0]
     elif len(info['CC_n']) == 0:
-        errs.append("No n in specified range; restting to default")
-        info['CC_n'] = range(maxp+1)
+        errs.append("No n in specified range; resetting to default")
+        info['CC_n'] = range(2, maxp+1)
     return errs
 
 def parse_m(info, newform):
@@ -276,7 +280,7 @@ def parse_m(info, newform):
     try:
         info['CC_m'] = integer_options(mrange, 1000)
     except (ValueError, TypeError) as err:
-        info['CC_m'] = range(1,maxm+1)
+        info['CC_m'] = range(1, maxm+1)
         if err.args and err.args[0] == 'Too many options':
             errs.append('Web interface only supports 1000 embeddings at a time.  Use download link to get more (may take some time).')
         else:
@@ -310,10 +314,6 @@ def render_newform_webpage(label):
     errs.extend(parse_m(info, newform))
     errs.extend(parse_prec(info))
     newform.setup_cc_data(info)
-    if newform.cqexp_prec != 0:
-        if max(info['CC_n']) >= newform.cqexp_prec:
-            errs.append(r"Only \(a_n\) up to %s are available"%(newform.cqexp_prec-1))
-            info['CC_n'] = [n for n in info['CC_n'] if n < newform.cqexp_prec]
     if errs:
         flash(Markup("<br>".join(errs)), "error")
     return render_template("cmf_newform.html",
@@ -339,6 +339,7 @@ def render_embedded_newform_webpage(newform_label, embedding_label):
     except ValueError as err:
         return abort(404, err.args)
     info['CC_m'] = [m]
+    info['CC_n'] = [0,1000]
     #errs.extend(parse_prec(info))
     errs = parse_prec(info)
     newform.setup_cc_data(info)
@@ -1158,7 +1159,10 @@ class CMF_stats(StatsDisplay):
                         'inner_twist_count': (lambda x: 'inner_twist_count={0}'.format(x if x != 'Unknown' else '-1')),
                         'relative_dim': rel_dim_formatter,
                         'level_primes': level_primes_formatter,
-                        'level_radical': level_radical_formatter}
+                        'level_radical': level_radical_formatter,
+                        'cm_discs': (lambda t: r'self_twist_discs=%d' % (t,)),
+                        'rm_discs': (lambda t: r'self_twist_discs=%d' % (t,)),
+                        }
     split_lists = {'cm_discs': True,
                    'rm_discs': True}
     stat_list = [

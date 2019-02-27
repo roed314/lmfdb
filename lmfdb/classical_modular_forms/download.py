@@ -260,12 +260,12 @@ class CMF_download(Downloader):
             yield '[\n'
             for ev in db.mf_hecke_cc.search(
                     {'hecke_orbit_code':code},
-                    ['lfunction_label',
+                    ['label',
                      'embedding_root_real',
                      'embedding_root_imag',
                      col],
                     sort=['conrey_index', 'embedding_index']):
-                D = {'label':ev.get('lfunction_label'),
+                D = {'label':ev.get('label'),
                      col:ev.get(col)}
                 root = (ev.get('embedding_root_real'),
                         ev.get('embedding_root_imag'))
@@ -287,8 +287,8 @@ class CMF_download(Downloader):
         return self._download_cc(label, lang, 'angles', '.angles', 'Satake angles')
 
     def download_embedding(self, label, lang='text'):
-        data = db.mf_hecke_cc.lucky({'lfunction_label':label},
-                                    ['lfunction_label',
+        data = db.mf_hecke_cc.lucky({'label':label},
+                                    ['label',
                                      'embedding_root_real',
                                      'embedding_root_imag',
                                      'an_normalized',
@@ -309,8 +309,7 @@ class CMF_download(Downloader):
         if data is None:
             return abort(404, "Label not found: %s"%label)
         form = WebNewform(data)
-        form.setup_cc_data({'m':'1-%s'%form.dim,
-                            'n':'1-1000'})
+        form.setup_cc_data({'m':'1-%s'%form.dim})
         if form.has_exact_qexp:
             data['qexp'] = form.qexp
             data['traces'] = form.texp

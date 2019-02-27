@@ -1,20 +1,13 @@
 OUTSTANDING VERIFICATIONS:
 
-Disabled:
-+ mf_newspaces.check_sum_AL_dims disabled (re-enable and optimize)
-
 Expected failures:
 + (mf_newforms.check_analytic_rank_proved: 1158 failures)
 
-Embedded modular form:
-* Change formatting for render_display_options macro to make it one line.
-
 IMPORTANT:
 * Add notes on provability/completeness to Artin image knowl (Drew)
-* change lfunction_label to label
+* rerun self twists disc
 
 FINAL CHECKS:
-* Make sure indexes are appropriate, especially for new sort orders (Edgar)
 * Update RCS knowls to match final data set (Drew)
 * Finalize announcement e-mail and PR (David)
 
@@ -117,6 +110,8 @@ NOT CMF STUFF:
 * Saved queries for demos (cf checklist)
 * Do restats in different order (compute all counts then upload), and wipe counts if too many
 * Add indexes on counts and stats tables
+* Split up database.py into multiple files
+* Add rename_column method to database.py
 * Add regexps for labels to meta_tables and use them.
 * Switch from pyflakes to flake8
 
