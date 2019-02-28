@@ -25,18 +25,75 @@ You can search using the methods ``search``, ``lucky`` and ``lookup``::
 
 """
 
-import datetime, inspect, logging, os, random, re, shutil, signal, subprocess, tempfile, time, traceback
-from collections import defaultdict, Counter
+from psycopg2.sql import SQL, Identifier, Literal
 
-from psycopg2 import connect, DatabaseError, InterfaceError, ProgrammingError
-from psycopg2.sql import SQL, Identifier, Placeholder, Literal, Composable
-from psycopg2.extras import execute_values
-from sage.all import cartesian_product_iterator, binomial
+from lmfdb.backend.encoding import Json
+from .base import IdentifierWrapper
 
-from lmfdb.backend.encoding import setup_connection, Json, copy_dumps, numeric_converter
-from lmfdb.utils import KeyedDefaultDict
-from lmfdb.logger import make_logger
-from lmfdb.typed_data.artin_types import Dokchitser_ArtinRepresentation, Dokchitser_NumberFieldGaloisGroup
+def _special_log(value, col, col_type, parser):
+    """
+    We modify the SQL log function to use Sage semantics instead: log(x, b) rather than log(b, x).
+    """
+    if isinstance(value, list):
+        if len(value) == 1:
+            inp, vals = parser.parse(value[0])
+            return SQL("log({0})").format(inp), vals
+        elif len(value) == 2:
+            inp0, vals0 = parser.parse(value[0])
+            inp1, vals1 = parser.parse(value[1])
+            # Note the changed order: our log is consistent with Python and Sage, NOT with SQL
+            return SQL("log({0}, {1})").format(inp1, inp0), vals1 + vals0
+    else:
+        inp, vals = parser.parse(value)
+        if col is None:
+            return SQL("log({0})").format(inp), vals
+        else:
+            return SQL("{0} = log({1})").format(col, inp), vals
+
+def _special_mod(value, col, col_type, parser):
+    """
+    We modify the SQL mod function to always return a result between 0 and b-1
+    (rather then negative values on negative input).
+    """
+    inp0, vals0 = parser.parse(value[0])
+    inp1, vals1 = parser.parse(value[1])
+    return SQL("MOD({1} + MOD({0}, {1}), {1})").format(inp0, inp1), vals0 + vals1
+
+def _special_cast(value, col, col_type, parser):
+    """
+    We whitelist the second value as a type.
+    """
+    if not isinstance(value[1], basestring):
+        raise ValueError("Type must be a string")
+    typ = value[1].lower()
+    if typ not in types_whitelist:
+        if not any(regexp.match(typ.lower()) for regexp in param_types_whitelist):
+            raise ValueError("%s is not a valid type" % value[1])
+    inp, vals = parser.parse(value[0])
+    return SQL("{0}::%s"%typ).format(inp), vals
+
+def _special_in(value, col, col_type, parser):
+    if col is None:
+        raise ValueError("$in invalid without column specified")
+    
+
+def _special_nin(value, col, col_type, parser):
+    pass
+
+def _special_contains(value, col, col_type, parser):
+    pass
+
+def _special_notcontains(value, col, col_type, parser):
+    pass
+
+def _special_exists(value, col, col_type, parser):
+    pass
+
+def _special_unnest(value, col, col_type, parser):
+    pass
+
+def _special_subselect(value, col, col_type, parser):
+    pass
 
 sql_funcs = dict(
     prefix = {
@@ -149,13 +206,13 @@ sql_funcs = dict(
         'stddev_samp': [2],
         'var_pop': [2],
         'var_samp': [2],
-    ]),
+    },
     special = {
         # Special: log, mod, div, ::, unnest
         'log': ([1,2], _special_log),
         'mod': ([2], _special_mod),
         '::': ([2], _special_cast),
-        'star': (None, (lambda value, col, col_type, tbl: (SQL('*'), []))),
+        'star': (None, (lambda value, col, col_type, parser: (SQL('*'), []))),
 
         'unnest': (None, _special_unnest),
         'subselect': (None, _special_subselect),
@@ -180,6 +237,27 @@ sql_funcs = dict(
     }
 )
 sql_funcs['joiners'].update(sql_funcs['binary'])
+
+class Parser(object):
+    def __init__(self, table):
+        self.table = table
+
+    def parse(self, x, outer=None, outer_coltype=None):
+        if isinstance(x, dict):
+            return self._parse_dict(x, outer, outer_coltype)
+        elif isinstance(x, basestring) and x and x[0] == '@':
+            x = self._identifier(x)
+            if outer is None:
+                return x, []
+            else:
+                return SQL("{0} = {1}").format(outer, x), []
+        else:
+            if outer_coltype == 'jsonb':
+                x = Json(x)
+            if outer is None:
+                return SQL("%s"), [x]
+            else:
+                return SQL("{0} = %s").format(outer), [x]
 
     def _parse_special(self, key, value, col, coltype):
         """
@@ -244,9 +322,9 @@ sql_funcs['joiners'].update(sql_funcs['binary'])
             pairs = [self._parse_expression(clause, outer=col, outer_coltype=coltype) for clause in value]
             # We disallow empty output of any subclause
             if any(pair[0] is None for pair in pairs):
-                if clause, pair in zip(value, pairs):
+                for clause, pair in zip(value, pairs):
                     if pair[0] is None:
-                        raise ValueError("Subclause returned None: %s" clause)
+                        raise ValueError("Subclause returned None: %s" % clause)
             strings, values = zip(*pairs)
             # flatten values
             values = [item for sublist in values for item in sublist]
@@ -346,23 +424,6 @@ sql_funcs['joiners'].update(sql_funcs['binary'])
         """
 
         return [Json(val) if self.col_type[key] == 'jsonb' else val for key, val in D.iteritems()]
-
-    def _parse_expression(self, x, outer=None, outer_coltype=None):
-        if isinstance(x, dict):
-            return self._parse_dict(x, outer, outer_coltype)
-        elif isinstance(x, basestring) and x and x[0] == '@':
-            x = self._identifier(x)
-            if outer is None:
-                return x, []
-            else:
-                return SQL("{0} = {1}").format(outer, x), []
-        else:
-            if outer_coltype == 'jsonb':
-                x = Json(x)
-            if outer is None:
-                return SQL("%s"), [x]
-            else:
-                return SQL("{0} = %s").format(outer), [x]
 
     def _parse_dict(self, D, outer=None, outer_coltype=None):
         """

@@ -25,18 +25,16 @@ You can search using the methods ``search``, ``lucky`` and ``lookup``::
 
 """
 
-import datetime, inspect, logging, os, random, re, shutil, signal, subprocess, tempfile, time, traceback
-from collections import defaultdict, Counter
+import logging, time
+from collections import defaultdict
 
-from psycopg2 import connect, DatabaseError, InterfaceError, ProgrammingError
-from psycopg2.sql import SQL, Identifier, Placeholder, Literal, Composable
-from psycopg2.extras import execute_values
+from psycopg2 import DatabaseError
+from psycopg2.sql import SQL, Identifier, Literal
 from sage.all import cartesian_product_iterator, binomial
 
-from lmfdb.backend.encoding import setup_connection, Json, copy_dumps, numeric_converter
+from lmfdb.backend.encoding import Json
 from lmfdb.utils import KeyedDefaultDict
-from lmfdb.logger import make_logger
-from lmfdb.typed_data.artin_types import Dokchitser_ArtinRepresentation, Dokchitser_NumberFieldGaloisGroup
+from .base import PostgresBase, pg_to_py, DelayCommit
 
 class PostgresStatsTable(PostgresBase):
     """

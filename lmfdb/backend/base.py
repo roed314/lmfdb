@@ -25,18 +25,14 @@ You can search using the methods ``search``, ``lucky`` and ``lookup``::
 
 """
 
-import datetime, inspect, logging, os, random, re, shutil, signal, subprocess, tempfile, time, traceback
-from collections import defaultdict, Counter
+import logging, re, time
 
-from psycopg2 import connect, DatabaseError, InterfaceError, ProgrammingError
-from psycopg2.sql import SQL, Identifier, Placeholder, Literal, Composable
+from psycopg2 import DatabaseError, InterfaceError, ProgrammingError
+from psycopg2.sql import SQL, Identifier, Composable
 from psycopg2.extras import execute_values
-from sage.all import cartesian_product_iterator, binomial
 
-from lmfdb.backend.encoding import setup_connection, Json, copy_dumps, numeric_converter
-from lmfdb.utils import KeyedDefaultDict
+from lmfdb.backend.encoding import numeric_converter
 from lmfdb.logger import make_logger
-from lmfdb.typed_data.artin_types import Dokchitser_ArtinRepresentation, Dokchitser_NumberFieldGaloisGroup
 
 # This list is used when creating new tables
 types_whitelist = [
@@ -87,21 +83,21 @@ for typ in ["text", "char", "character", "character varying", "varchar"]:
     pg_to_py[typ] = str
 
 # the non-default operator classes, used in creating indexes
-_operator_classes = {'brin':   ['inet_minmax_ops'],
-                     'btree':  ['bpchar_pattern_ops', 'cidr_ops', 'record_image_ops',
-                                'text_pattern_ops', 'varchar_ops', 'varchar_pattern_ops'],
-                     'gin':    ['jsonb_path_ops'],
-                     'gist':   ['inet_ops'],
-                     'hash':   ['bpchar_pattern_ops', 'cidr_ops', 'text_pattern_ops',
-                                'varchar_ops', 'varchar_pattern_ops'],
-                     'spgist': ['kd_point_ops']}
+operator_classes = {'brin':   ['inet_minmax_ops'],
+                    'btree':  ['bpchar_pattern_ops', 'cidr_ops', 'record_image_ops',
+                               'text_pattern_ops', 'varchar_ops', 'varchar_pattern_ops'],
+                    'gin':    ['jsonb_path_ops'],
+                    'gist':   ['inet_ops'],
+                    'hash':   ['bpchar_pattern_ops', 'cidr_ops', 'text_pattern_ops',
+                               'varchar_ops', 'varchar_pattern_ops'],
+                    'spgist': ['kd_point_ops']}
 # Valid storage parameters by type, used in creating indexes
-_valid_storage_params = {'brin':   ['pages_per_range', 'autosummarize'],
-                         'btree':  ['fillfactor'],
-                         'gin':    ['fastupdate', 'gin_pending_list_limit'],
-                         'gist':   ['fillfactor', 'buffering'],
-                         'hash':   ['fillfactor'],
-                         'spgist': ['fillfactor']}
+valid_storage_params = {'brin':   ['pages_per_range', 'autosummarize'],
+                        'btree':  ['fillfactor'],
+                        'gin':    ['fastupdate', 'gin_pending_list_limit'],
+                        'gist':   ['fillfactor', 'buffering'],
+                        'hash':   ['fillfactor'],
+                        'spgist': ['fillfactor']}
 
 identifier_splitter = re.compile(r"(->|->>|#>|#>>|::)")
 
@@ -382,7 +378,7 @@ class SearchTable(PostgresBase):
             pass
         if col not in self.col_type:
             raise ValueError("Unknown column")
-        coltype = self.col_type[col]
+        #coltype = self.col_type[col]
         if col in self._search_cols:
             col = self.search_table + "." + col
         elif col in self._extra_cols:

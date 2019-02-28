@@ -25,18 +25,11 @@ You can search using the methods ``search``, ``lucky`` and ``lookup``::
 
 """
 
-import datetime, inspect, logging, os, random, re, shutil, signal, subprocess, tempfile, time, traceback
-from collections import defaultdict, Counter
+from collections import defaultdict
 
-from psycopg2 import connect, DatabaseError, InterfaceError, ProgrammingError
-from psycopg2.sql import SQL, Identifier, Placeholder, Literal, Composable
-from psycopg2.extras import execute_values
-from sage.all import cartesian_product_iterator, binomial
+from psycopg2.sql import SQL, Identifier
 
-from lmfdb.backend.encoding import setup_connection, Json, copy_dumps, numeric_converter
-from lmfdb.utils import KeyedDefaultDict
-from lmfdb.logger import make_logger
-from lmfdb.typed_data.artin_types import Dokchitser_ArtinRepresentation, Dokchitser_NumberFieldGaloisGroup
+from .base import SearchTable, IdentifierWrapper
 
 class JoinedTable(SearchTable):
     """
@@ -67,7 +60,7 @@ class JoinedTable(SearchTable):
             raise ValueError("Invalid join type %s" % join_type)
         db = tables[0]._db
         ft = tables[0].search_table
-        PostgresBase.__init__(ft, db)
+        SearchTable.__init__(ft, db)
         # Handle dt = None
         self.distinguished = distinguished
         self.tables = {T.search_table: T for T in tables}
