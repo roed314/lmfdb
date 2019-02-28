@@ -28,7 +28,7 @@ You can search using the methods ``search``, ``lucky`` and ``lookup``::
 from psycopg2.sql import SQL, Identifier, Literal
 
 from lmfdb.backend.encoding import Json
-from .base import IdentifierWrapper
+from .base import IdentifierWrapper, types_whitelist, param_types_whitelist
 
 def _special_log(value, col, col_type, parser):
     """
