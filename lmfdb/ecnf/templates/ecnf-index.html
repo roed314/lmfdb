@@ -168,9 +168,14 @@ A <a href={{url_for('.random_curve')}}>random elliptic curve</a> from the databa
  </tr>
 
   </table>
-<p></p>
-<td><button type='submit' value='Search'>Search</button></td>
-<p></p>
+  <table>
+    <tr>
+      <td>Display: </td>
+      {% for type, desc in [('List', 'List of Results'), ('Random', 'Random Result')] %}
+      <td class="button"><button type='submit' name='search_type' value='{{type}}' style="width: 170px;">{{desc}}</button></td>
+      {% endfor %}
+    </tr>
+  </table>
 </form>
 
 

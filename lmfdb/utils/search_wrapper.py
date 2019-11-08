@@ -82,7 +82,8 @@ class SearchWrapper(Wrapper):
     def __call__(self, info):
         info = to_dict(info, exclude=['bread'])  # I'm not sure why this is required...
         #  if search_type starts with 'Random' returns a random label
-        random = info.get('search_type', '').startswith('Random')
+        info["search_type"] = info.get("search_type", info.get("hst", "List"))
+        random = info["search_type"].startswith('Random')
         for key, func in self.shortcuts.items():
             if info.get(key,'').strip():
                 return func(info)

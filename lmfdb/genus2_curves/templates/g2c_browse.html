@@ -171,11 +171,16 @@ A <a href={{url_for('.random_curve')}}>random genus 2 curve</a> from the databas
 <td><input type='text' name='count' value=50 size=10></td>
 <td><span class="formexample"> &nbsp;</td>
 </tr>
-<tr>
-<td><button type='submit' value='Search'>Search</button></td>
-</tr>
 
 </table>
+  <table>
+    <tr>
+      <td>Display: </td>
+      {% for type, desc in [('List', 'List of Results'), ('Random', 'Random Result')] %}
+      <td class="button"><button type='submit' name='search_type' value='{{type}}' style="width: 170px;">{{desc}}</button></td>
+      {% endfor %}
+    </tr>
+  </table>
 
 </form>
 

@@ -472,6 +472,7 @@ def elliptic_curve_jump(info):
              cleaners={'numb':lambda e: str(e['number']),
                        'field_knowl':lambda e: nf_display_knowl(e['field_label'], field_pretty(e['field_label']))},
              bread=lambda:[('Elliptic Curves', url_for(".index")), ('Search Results', '.')],
+             url_for_label=lambda label: url_for(".show_ecnf1", nf=label),
              credit=lambda:ecnf_credit)
 def elliptic_curve_search(info, query):
     parse_nf_string(info,query,'field',name="base number field",qfield='field_label')
