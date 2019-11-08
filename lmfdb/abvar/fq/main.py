@@ -65,13 +65,10 @@ def abelian_varieties():
         info = to_dict(args)
         # hidden_search_type for prev/next buttons
         info["search_type"] = search_type = info.get("search_type", info.get("hst", "List"))
-
-        if search_type == "List":
-            return abelian_variety_search(info)
-        elif search_type == "Counts":
+        if search_type == "Counts":
             return abelian_variety_count(info)
-        elif search_type == "Random":
-            return abelian_variety_search(info, random=True)
+        elif search_type in ['List', 'Random']:
+            return abelian_variety_search(info)
         assert False
     else:
         return abelian_variety_browse(**args)

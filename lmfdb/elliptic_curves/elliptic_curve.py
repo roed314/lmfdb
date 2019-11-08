@@ -237,6 +237,7 @@ def download_search(info):
              table=db.ec_curves,
              title='Elliptic Curves Search Results',
              err_title='Elliptic Curve Search Input Error',
+             url_for_label=lambda label: url_for(".by_ec_label", label=label),
              per_page=50,
              shortcuts={'jump':elliptic_curve_jump,
                         'download':download_search},
