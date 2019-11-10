@@ -158,7 +158,14 @@ By  {{KNOWL('ag.curve.genus',title='genus')}}:
             </td><td><input id="count" type="text" name="count" value="50" size="10"></td>
           </tr>
   </table>
-        <button type='submit' value='search'>Search</button>
+  <table>
+    <tr>
+      <td>Display: </td>
+      {% for type, desc in [('List', 'List of Results'), ('Random', 'Random Result')] %}
+      <td class="button"><button type='submit' name='search_type' value='{{type}}' style="width: 170px;">{{desc}}</button></td>
+      {% endfor %}
+    </tr>
+  </table>
       </form>
 
 

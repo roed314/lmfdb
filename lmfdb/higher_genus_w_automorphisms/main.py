@@ -451,6 +451,7 @@ def hgcwa_code_download_search(info):
             'download': hgcwa_code_download_search },
         cleaners={'signature': lambda field: ast.literal_eval(field['signature'])},
         bread=lambda: get_bread([("Search Results",'')]),
+        url_for_label=lambda label: url_for(".by_passport_label", passport_label=label),
         credit=lambda: credit)
 def higher_genus_w_automorphisms_search(info, query):
     if info.get('signature'):
