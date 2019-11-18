@@ -652,7 +652,7 @@ def tor_struct_search_nf(prefill="any"):
         elif len(t)==2:
             gps.append(cyc2(*t))
 
-    return "\n".join(["<select name='torsion_structure'>"] + ["<option value={}>{}</option>".format(a,b) for a,b in gps] + ["</select>"])
+    return "\n".join(["<select name='torsion_structure' style='width: 170px;'>"] + ["<option value={}>{}</option>".format(a,b) for a,b in gps] + ["</select>"])
 
 # the following allows the preceding function to be used in any template via {{...}}
 app.jinja_env.globals.update(tor_struct_search_nf=tor_struct_search_nf)
