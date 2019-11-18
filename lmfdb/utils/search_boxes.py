@@ -90,7 +90,7 @@ class TextBox(SearchBox):
     - ``qfield`` -- the corresponding database column (defaults to name).  Not currently used.
     """
 
-    def __init__(self, name=None, label=None, knowl=None, example=None, example_span=None, colspan=(1, 1, 1), width=15, short_width=10, short_label=None, advanced=False, example_col=None, qfield=None):
+    def __init__(self, name=None, label=None, knowl=None, example=None, example_span=None, example_span_colspan=1, colspan=(1, 1, 1), width=15, short_width=10, short_label=None, advanced=False, example_col=None, qfield=None):
         self.example = example
         self.example_span = example if example_span is None else example_span
         if example_col is None:
@@ -98,6 +98,7 @@ class TextBox(SearchBox):
         SearchBox.__init__(self, name, label, knowl=knowl, colspan=colspan, short_label=short_label, advanced=advanced, example_col=example_col, qfield=qfield)
         self.width = width
         self.short_width = short_width
+        self.example_span_colspan = example_span_colspan
 
     def _input(self, info):
         keys = ['type="text"', 'name="%s"' % self.name]
@@ -117,7 +118,7 @@ class TextBox(SearchBox):
 
     def example_html(self, info=None):
         if self.example_col:
-            return self.td() + '<span class="formexample">e.g. %s</span></td>' % self.example_span
+            return self.td(self.example_span_colspan) + '<span class="formexample">e.g. %s</span></td>' % self.example_span
 
 class SelectBox(SearchBox):
     def __init__(self, name=None, label=None, options=[], knowl=None, colspan=(1, 1, 1), width=107, short_width=105, short_label=None, advanced=False, example_col=False, qfield=None):
