@@ -15,19 +15,19 @@
   </tr>
 
   <tr>
-    <td><input type='text' name='deg' placeholder='4' style="width: 170px" value="{{info.deg}}"></td>
-    <td><input type='text' name='group' placeholder='4T5' style="width: 170px" value="{{info.group}}"></td>
-    <td><input type='text' name='abc' placeholder='5' style="width: 170px" value="{{info.abc}}"></td>
-    <td><input type='text' name='abc_list' placeholder='[4,4,3]' style="width: 170px" value="{{info.abc_list}}"></td>
+    <td><input type='text' name='deg' placeholder='4' style="width: 160px" value="{{info.deg}}"></td>
+    <td><input type='text' name='group' placeholder='4T5' style="width: 160px" value="{{info.group}}"></td>
+    <td><input type='text' name='abc' placeholder='5' style="width: 160px" value="{{info.abc}}"></td>
+    <td><input type='text' name='abc_list' placeholder='[4,4,3]' style="width: 160px" value="{{info.abc_list}}"></td>
   </tr>
   <tr>
   <td>{{ KNOWL('belyi.genus', title='Genus') }}</td>
   <td>{{ KNOWL('belyi.orbit_size', title='Orbit size') }}</td>
   <td>{{ KNOWL('belyi.geometry_type', title='Geometry type') }}</td>
   </tr>
-    <td><input type='text' name='g' placeholder='1' style="width: 170px" value="{{info.g}}"></td>
-    <td><input type='text' name='orbit_size' placeholder='2' style="width: 170px" value="{{info.orbit_size}}"></td>
-    <td><select name='geomtype' width="100" style="width: 160px" value="{{info.geomtype}}" >
+    <td><input type='text' name='g' placeholder='1' style="width: 160px" value="{{info.g}}"></td>
+    <td><input type='text' name='orbit_size' placeholder='2' style="width: 160px" value="{{info.orbit_size}}"></td>
+    <td><select name='geomtype' width="100" style="width: 170px" value="{{info.geomtype}}" >
         <option ></option>
         {% for G in info.geometry_types_list %}
           {% if G == info.geomtype %}
