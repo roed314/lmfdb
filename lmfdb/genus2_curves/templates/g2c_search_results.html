@@ -30,9 +30,9 @@
 <tr>
 <td>{{ KNOWL('g2c.two_selmer_rank', title='2-Selmer rank')}}</td>
 <td>{{ KNOWL('g2c.analytic_rank', title='Analytic rank*')}}</td>
+<td>{{ KNOWL('g2c.has_square_sha',   title='Square &#1064;*') }}</td>
 <td>{{ KNOWL('g2c.torsion_order', title='Torsion order')}}</td>
 <td>{{ KNOWL('g2c.torsion', title='Torsion')}}</td>
-<td>{{ KNOWL('g2c.st_group', title='\(\mathrm{ST}\)') }}</td>
 
 </tr>
 
@@ -40,30 +40,33 @@
 
 <td><input type='text' name='two_selmer_rank' placeholder='1'  style="width: 160px" value="{{info.two_selmer_rank}}">
 <td><input type='text' name='analytic_rank' placeholder='1'  style="width: 160px" value="{{info.analytic_rank}}">
+<td><select name='has_square_sha' style="width: 170px">
+  <option ></option>
+  <option value="True" {{ "selected" if info.has_square_sha == 'True'}}>True</option>
+  <option value="False" {{ "selected" if info.has_square_sha == 'False'}}>False</option>
+</select></td>
+<td><input type='text' name='torsion_order' placeholder='2'  style="width: 160px" value="{{info.torsion_order}}">
+<td><input type='text' name='torsion' placeholder='[2,2,2]'  style="width: 160px" value="{{info.torsion}}">
 
 
+</tr>
 
+<tr>
+<td>{{ KNOWL('g2c.st_group', title='\(\mathrm{ST}\)') }}</td>
+<td>{{ KNOWL('g2c.st_group_identity_component', title='\(\mathrm{ST}^0\)') }}</td>
+<td>{{ KNOWL('g2c.aut_grp', title='\(\mathrm{Aut}(X)\)') }}</td>
+<td>{{ KNOWL('g2c.geom_aut_grp',   title='\(\mathrm{Aut}(X_{\overline{\Q}})\)') }}</td>
+<td>{{ KNOWL('g2c.geom_end_alg', title='\(\overline{\Q}\)-end algebra') }}</td>
+<td>{{ KNOWL('g2c.locally_solvable',   title='Locally solvable') }}</td>
+</tr>
+
+<tr>
 <td><select name='st_group' style="width: 170px" >
     <option ></option>
     {% for G in info.st_group_list %}
         <option value='{{G}}' {{ "selected"  if G == info.st_group }}>{{info.st_group_dict[G]}}</option>
     {% endfor %}
 </select></td>
-<td><input type='text' name='torsion_order' placeholder='2'  style="width: 160px" value="{{info.torsion_order}}">
-<td><input type='text' name='torsion' placeholder='[2,2,2]'  style="width: 160px" value="{{info.torsion}}">
-
-</tr>
-
-<tr>
-<td>{{ KNOWL('g2c.st_group_identity_component', title='\(\mathrm{ST}^0\)') }}</td>
-<td>{{ KNOWL('g2c.aut_grp', title='\(\mathrm{Aut}(X)\)') }}</td>
-<td>{{ KNOWL('g2c.geom_aut_grp',   title='\(\mathrm{Aut}(X_{\overline{\Q}})\)') }}</td>
-<td>{{ KNOWL('g2c.geom_end_alg', title='\(\overline{\Q}\)-end algebra') }}</td>
-<td>{{ KNOWL('g2c.locally_solvable',   title='Locally solvable') }}</td>
-<td>{{ KNOWL('g2c.has_square_sha',   title='Square &#1064;*') }}</td>
-</tr>
-
-
 <td><select name='real_geom_end_alg' style="width: 170px">
     <option ></option>
     {% for G in info.real_geom_end_alg_list %}
@@ -98,11 +101,7 @@
   <option value="False" {{ "selected" if info.locally_solvable == 'False'}}>False</option>
 </select></td>
 
-<td><select name='has_square_sha' style="width: 170px">
-  <option ></option>
-  <option value="True" {{ "selected" if info.has_square_sha == 'True'}}>True</option>
-  <option value="False" {{ "selected" if info.has_square_sha == 'False'}}>False</option>
-</select></td>
+
 
 </tr>
 
