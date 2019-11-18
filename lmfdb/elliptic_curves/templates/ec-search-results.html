@@ -71,7 +71,19 @@
   </select>
 </td>
 <td align=left>{{KNOWL('ec.maximal_galois_rep', title='Maximal primes')}}</td>
-<td align=left >{{KNOWL('ec.maximal_galois_rep', title='Non-maximal primes')}}</td>
+<td align=left>
+  {{KNOWL('ec.maximal_galois_rep', title='Non-maximal $p$')}}
+  <select name='surj_quantifier'>
+{% if info.surj_quantifier=='exactly' %}
+  <option value=''>include</option>
+  <option selected value='exactly'>exactly</option>
+{% else %}
+  <option value=''>include</option>
+  <option value='exactly'>exactly</option>
+{% endif %}
+  </select>
+</td>
+<td align=left>{{ KNOWL('ec.complex_multiplication',title="CM") }} </td>
 </tr>
 <tr>
 <td align=left>
@@ -83,27 +95,9 @@
 </td>
 
 <td align=left >
-  <select name='surj_quantifier'>
-{% if info.surj_quantifier=='exactly' %}
-  <option value=''>include</option>
-  <option selected value='exactly'>exactly</option>
-{% else %}
-  <option value=''>include</option>
-  <option value='exactly'>exactly</option>
-{% endif %}
-  </select>
+
 <input type='text' name='nonsurj_primes' placeholder="2,3" style="width: 160px;"  value={{info.nonsurj_primes}}>
 </td>
-</tr>
-
-
-
-
-<tr>
-<td align=left>{{ KNOWL('ec.complex_multiplication',title="CM") }} </td>
-</tr>
-<tr>
-
 <td>         <select name='include_cm', style='width: 170px'>
 {% if info.include_cm == "only" %}
            <option value="">include</option>
