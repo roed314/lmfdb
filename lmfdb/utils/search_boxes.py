@@ -234,17 +234,27 @@ class SearchArray(UniqueRepresentation):
     def buttons(self, info=None):
         button_str = "<td class='button'><button type='submit' name='search_type' value='{val}' style='width: 170px;' {onclick} >{desc}</button></td>"
         if info is None:
-            buttons = ['<td>Display: </td>']
-            buttons += [button_str.format(val=val, onclick='', desc=desc) for typ, desc in self.search_types]
+            buttons = ["<td>Display: </td>"]
+            buttons += [
+                button_str.format(val=val, onclick="", desc=desc)
+                for val, desc in self.search_types
+            ]
         else:
-            search_types = [(info['search_type'], 'Search again')] + [(v, d) for v, d in self.search_types if v != info['search_type']]
-            buttons = [button_str.format(val=val, onclick="onclick='resetStart()'", desc=desc) for typ, desc in self.search_types]
+            search_types = [(info["search_type"], "Search again")] + [
+                (v, d) for v, d in self.search_types if v != info["search_type"]
+            ]
+            buttons = [
+                button_str.format(val=val, onclick="onclick='resetStart()'", desc=desc)
+                for val, desc in search_types
+            ]
+
     return (
         '  <table border="0">'
-            + "\n    <tr>"
-            + "\n      ".join(buttons)
-            + "\n    <tr>"
-            + "\n  </table>"
+        + "\n    <tr>"
+        + "\n      ".join(buttons)
+        + "\n    <tr>"
+        + "\n  </table>"
+    )
 
     def html(self, info=None):
         return "\n".join([self.main_table(info), self.buttons(info)])
