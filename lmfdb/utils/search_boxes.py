@@ -184,7 +184,7 @@ class TextBoxWithSelect(TextBox):
         )
 
 class SearchArray(UniqueRepresentation):
-    def __init__(self, browse_array, refine_array):
+    def __init__(self, browse_array, refine_array, search_types=[('List', 'List of Results'), ('Random', 'Random Result')])):
         self.browse_array = browse_array
         self.refine_array = refine_array
         self.all_search = []
@@ -194,8 +194,9 @@ class SearchArray(UniqueRepresentation):
                     for col in row:
                         if isinstance(col, SearchBox) and col not in self.all_search:
                             self.all_search.append(col)
+        self.search_types = search_types
 
-    def html(self, info=None):
+    def main_table(self, info=None):
         if info is None:
             # browse page
             lines = []
@@ -230,3 +231,20 @@ class SearchArray(UniqueRepresentation):
             + "".join("\n    <tr>" + line + "\n    </tr>" for line in lines)
             + "\n  </table>"
         )
+    def buttons(self, info=None):
+        button_str = "<td class='button'><button type='submit' name='search_type' value='{val}' style='width: 170px;' {onclick} >{desc}</button></td>"
+        if info is None:
+            buttons = [button_str.format(val=val, onclick='', desc=desc) for typ, desc in self.search_types]
+        else:
+            search_types = [(info['search_type'], 'Search again')] + [(v, d) for v, d in self.search_types if v != info['search_type']]
+            buttons = [button_str.format(val=val, onclick="onclick='resetStart()'", desc=desc) for typ, desc in self.search_types]
+    return (
+        '  <table border="0">'
+            + "\n    <tr>"
+            + "\n      ".join(buttons)
+            + "\n    <tr>"
+            + "\n  </table>"
+
+    def html(self, info=None):
+        return "\n".join([self.main_table(info), self.buttons(info)])
+

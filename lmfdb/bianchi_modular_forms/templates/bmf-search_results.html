@@ -7,6 +7,7 @@
   {% include 'hidden_search_inputs.html' %}
   {{ info.search_array.html(info) | safe }}
   <table>
+    <tr style="height: 20px;"></tr>
     {% set search_types = [('List', 'List of Results'), ('Random', 'Random Result')] %}
     <tr>
       <td><button type='submit' name='search_type' value='{{info.search_type}}' style="width: 170px;" onclick='resetStart()'>Search again</button></td>
