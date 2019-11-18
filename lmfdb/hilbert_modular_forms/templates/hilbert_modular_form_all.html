@@ -125,11 +125,15 @@ including <a href="?field_label=6.6.300125.1">6.6.300125.1</a>,
 <td>Results to display</td>
 <td><input type='text' name='count' value=50 size=10></td>
 </tr>
-<tr>
-<td colspan=3><button type='submit' value='Search'>Search</button>
-</td>
-</tr>
 </table>
+  <table>
+    <tr>
+      <td>Display: </td>
+      {% for type, desc in [('List', 'List of Results'), ('Random', 'Random Result')] %}
+      <td class="button"><button type='submit' name='search_type' value='{{type}}' style="width: 170px;">{{desc}}</button></td>
+      {% endfor %}
+    </tr>
+  </table>
 </form>
 
 

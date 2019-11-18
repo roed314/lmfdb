@@ -119,7 +119,8 @@ def hilbert_modular_form_jump(info):
                            ('Hilbert Modular Forms', url_for(".hilbert_modular_form_render_webpage")),
                            ('Search Results', '.')],
              learnmore=learnmore_list,
-             credit=lambda:hmf_credit,
+             url_for_label=lambda label: url_for('.render_hmf_webpage', label=label),
+             credit=lambda: hmf_credit,
              properties=lambda: [])
 def hilbert_modular_form_search(info, query):
     parse_nf_string(info,query,'field_label',name="Field")

@@ -64,10 +64,16 @@
     </select>
 </td>
 </tr>
-<tr>
-<td class="button"><button type='submit' value='Search' onclick='resetStart()'>Search again</button>
-</td>
-</tr>
+{% set search_types = [('List', 'List of Results'), ('Random', 'Random Result')] %}
+<tr style="height: 20px;"></tr>
+    <tr>
+      <td><button type='submit' name='search_type' value='{{info.search_type}}' style="width: 170px;" onclick='resetStart()'>Search again</button></td>
+      {% for type, desc in search_types %}
+      {% if info.search_type != type %}
+      <td><button type='submit' name='search_type' value='{{ type }}' style="width: 170px;">{{ desc }}</button></td>
+      {% endif %}
+      {% endfor %}
+    </tr>
 </table>
 </form>
 
