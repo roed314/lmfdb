@@ -11,9 +11,8 @@
 <td>{{ KNOWL('ag.conductor', title='Conductor') }}</td>
 <td>{{ KNOWL('g2c.abs_discriminant', title='Discriminant')}}</td>
 <td>{{ KNOWL('g2c.num_rat_pts', title='Rational points') }}</td>
-<td>{{ KNOWL('g2c.num_rat_wpts', title='Weierstrass') }}</td>
-<td>{{ KNOWL('g2c.torsion_order', title='Torsion order')}}</td>
-<td>{{ KNOWL('g2c.torsion', title='Torsion')}}</td>
+<td>{{ KNOWL('g2c.num_rat_wpts', title='Weierstrass points') }}</td>
+<td>{{ KNOWL('g2c.gl2type', title='\(\GL_2\)-type') }}</td>
 </tr>
 
 <tr>
@@ -21,15 +20,18 @@
 <td><input type='text' name='abs_disc' placeholder='169' style="width: 160px" value="{{info.abs_disc}}"></td>
 <td><input type='text' name='num_rat_pts' placeholder='1'  style="width: 160px" value="{{info.num_rat_pts}}">
 <td><input type='text' name='num_rat_wpts' placeholder='1'  style="width: 160px" value="{{info.num_rat_wpts}}">
-<td><input type='text' name='torsion_order' placeholder='2'  style="width: 160px" value="{{info.torsion_order}}">
-<td><input type='text' name='torsion' placeholder='[2,2,2]'  style="width: 160px" value="{{info.torsion}}">
+<td><select name='is_gl2_type' style="width: 170px">
+  <option ></option>
+  <option value="True" {{ "selected" if info.is_gl2_type == 'True'}}>True</option>
+  <option value="False" {{ "selected" if info.is_gl2_type == 'False'}}>False</option>
+</select></td>
 </tr>
 
 <tr>
 <td>{{ KNOWL('g2c.two_selmer_rank', title='2-Selmer rank')}}</td>
 <td>{{ KNOWL('g2c.analytic_rank', title='Analytic rank*')}}</td>
-<td colspan='2'>{{ KNOWL('g2c.geometric_invariants', title='Geometric invariants')}}</td>
-<td>{{ KNOWL('g2c.gl2type', title='\(\GL_2\)-type') }}</td>
+<td>{{ KNOWL('g2c.torsion_order', title='Torsion order')}}</td>
+<td>{{ KNOWL('g2c.torsion', title='Torsion')}}</td>
 <td>{{ KNOWL('g2c.st_group', title='\(\mathrm{ST}\)') }}</td>
 
 </tr>
@@ -39,18 +41,7 @@
 <td><input type='text' name='two_selmer_rank' placeholder='1'  style="width: 160px" value="{{info.two_selmer_rank}}">
 <td><input type='text' name='analytic_rank' placeholder='1'  style="width: 160px" value="{{info.analytic_rank}}">
 
-<td colspan='2'><select name='geometric_invariants_type' style="width: 170px">
-  <option value='' {{ "selected" if info.geometric_invariants_type == 'igusa_clebsch_inv'}}>Igusa-Clebsch</option>
-  <option value='igusa_inv' {{ "selected" if info.geometric_invariants_type == 'igusa_inv'}}>Igusa</option>
-  <option value='g2_inv' {{ "selected" if info.geometric_invariants_type == 'g2_inv'}}>G2</option>
-</select>
-<input type='text' name='geometric_invariants' placeholder='[8,3172,30056,-692224]' style="width: 120px" value="{{info.geometric_invariants}}"></td>
 
-<td><select name='is_gl2_type' style="width: 170px">
-  <option ></option>
-  <option value="True" {{ "selected" if info.is_gl2_type == 'True'}}>True</option>
-  <option value="False" {{ "selected" if info.is_gl2_type == 'False'}}>False</option>
-</select></td>
 
 <td><select name='st_group' style="width: 170px" >
     <option ></option>
@@ -58,6 +49,8 @@
         <option value='{{G}}' {{ "selected"  if G == info.st_group }}>{{info.st_group_dict[G]}}</option>
     {% endfor %}
 </select></td>
+<td><input type='text' name='torsion_order' placeholder='2'  style="width: 160px" value="{{info.torsion_order}}">
+<td><input type='text' name='torsion' placeholder='[2,2,2]'  style="width: 160px" value="{{info.torsion}}">
 
 </tr>
 
@@ -115,7 +108,7 @@
 
 <tr>
 <td>{{ KNOWL('ag.geom_simple', title='\(\overline{\mathbb Q}\)-simple') }}</td>
-<td align=left colspan=2>{{KNOWL('g2c.good_reduction', title='Bad primes')}}
+<td align=left>{{KNOWL('g2c.good_reduction', title='Bad primes')}}
   <div class='float-right'>
     <select name='bad_quantifier'>
 {% if info.bad_quantifier=='exactly' %}
@@ -134,6 +127,16 @@
   </select>
   </div>
 </td>
+<td colspan='2'>
+  {{ KNOWL('g2c.geometric_invariants', title='Geometric invariants')}}
+  <div class='float-right'>
+  <select name='geometric_invariants_type'>
+  <option value='' {{ "selected" if info.geometric_invariants_type == 'igusa_clebsch_inv'}}>Igusa-Clebsch</option>
+  <option value='igusa_inv' {{ "selected" if info.geometric_invariants_type == 'igusa_inv'}}>Igusa</option>
+  <option value='g2_inv' {{ "selected" if info.geometric_invariants_type == 'g2_inv'}}>G2</option>
+</select>
+  </div>
+</td>
 </tr>
 
 
@@ -145,8 +148,9 @@
 </select></td>
 <td align=left colspan=2>
 
-<input type='text' name='bad_primes' placeholder="2,3" size=10  value={{info.bad_primes}}>
+<input type='text' name='bad_primes' placeholder="2,3" style="width: 160px;"  value={{info.bad_primes}}>
 </td>
+<td colspan='2'> <input type='text' name='geometric_invariants' placeholder='[8,3172,30056,-692224]' style="width: 350px" value="{{info.geometric_invariants}}"></td>
 </tr>
 {% set search_types = [('List', 'List of Results'), ('Random', 'Random Result')] %}
 <tr style="height: 20px;"></tr>
