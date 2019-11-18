@@ -3,9 +3,7 @@
 
 <h2> Further refine search </h2>
 
-<form id='re-search' onsubmit="cleanSubmit(this.id)">
-  {{ info.search_array.html(info) | safe }}
-</form>
+{% include 'refine_search_form.html' %}
 
 {% include 'matches.html' %}
 {% if info.number %}
