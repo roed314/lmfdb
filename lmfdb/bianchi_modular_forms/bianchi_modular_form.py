@@ -9,6 +9,7 @@ from lmfdb import db
 from lmfdb.utils import (
     to_dict, web_latex_ideal_fact, flash_error,
     nf_string_to_label, parse_nf_string, parse_noop, parse_start, parse_count, parse_ints,
+    SearchArray, TextBox, SelectBox, TextBoxWithSelect, SkipBox, CheckBox, CheckboxSpacer,
     teXify_pol, search_wrap)
 from lmfdb.number_fields.web_number_field import field_pretty, WebNumberField, nf_display_knowl
 from lmfdb.nfutils.psort import ideal_from_label
@@ -75,6 +76,7 @@ def index():
         t = 'Bianchi Modular Forms'
         bread = [('Modular Forms', url_for('modular_forms')), ('Bianchi Modular Forms', url_for(".index"))]
         info['learnmore'] = []
+        info["search_array"] = BMFSearchArray()
         return render_template("bmf-browse.html", info=info, credit=credit, title=t, bread=bread, bc_examples=bc_examples, learnmore=learnmore_list())
     else:
         return bianchi_modular_form_search(args)
@@ -392,3 +394,60 @@ def labels_page():
     return render_template("single.html", kid='mf.bianchi.labels',
                            credit=credit, title=t, bread=bread, learnmore=learnmore_list_remove('labels'))
 
+
+class BMFSearchArray(SearchArray):
+    def __init__(self):
+        field = TextBox(
+            'field_label',
+            label='Base Field',
+            knowl='nf',
+            colspan=(1, 1, 2),
+            example='2.0.4.1',
+            example_span='either a field label, e.g. 2.0.4.1 for \(\mathbb{Q}(\sqrt{-1})\), or a nickname, e.g. Qsqrt-1')
+        level = TextBox(
+            'level_norm',
+            label='Level norm',
+            knowl='mf.bianchi.level',
+            example='1',
+            example_span='e.g. 1 or 1-100')
+        dimension = TextBox(
+            'dimension',
+            label='Dimension',
+            knowl='mf.bianchi.spaces',
+            example='1',
+            example_span='e.g. 1 or 2')
+
+        sign = SelectBox(
+            'sfe',
+            label='Sign',
+            knowl='mf.bianchi.sign',
+            options=[("", "any"), ("+1", "+1"), ("-1", "-1")]
+        )
+        base_change = SelectBox(
+            'include_base_change',
+            label='Base change',
+            knowl='mf.bianchi.base_change',
+            options=[("", "include"), ("off", "exclude")]
+        )
+        CM = SelectBox(
+            'include_cm',
+            label='CM',
+            knowl='mf.bianchi.cm',
+            options=[("", "include"), ("off", "exclude"), ("only", "only")]
+        )
+        count = TextBox(
+            "count",
+            label="Results to display",
+        )
+
+        browse_array = [
+            [field],
+            [level, dimension],
+            [sign, base_change],
+            [count, CM]
+        ]
+        refine_array = [
+            [field, level, dimension],
+            [sign, base_change, CM]
+        ]
+        SearchArray.__init__(self, browse_array, refine_array)

@@ -58,6 +58,7 @@ Browse {{ KNOWL('mf.bianchi.spaces', title='newform spaces')}} by  {{ KNOWL('nf'
 <h2> Search </h2>
 
 <form id='search' onsubmit="cleanSubmit(this.id)">
+  {{ info.search_array.html() | safe }}
 <table>
 <tr>
 <td> {{ KNOWL('nf', title='Base field')}}</td> 
