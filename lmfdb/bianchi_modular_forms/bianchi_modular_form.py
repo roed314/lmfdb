@@ -398,39 +398,39 @@ def labels_page():
 class BMFSearchArray(SearchArray):
     def __init__(self):
         field = TextBox(
-            'field_label',
+            name='field_label',
             label='Base Field',
             knowl='nf',
             colspan=(1, 1, 4),
             example='2.0.4.1',
             example_span='either a field label, e.g. 2.0.4.1 for \(\mathbb{Q}(\sqrt{-1})\), or a nickname, e.g. Qsqrt-1')
         level = TextBox(
-            'level_norm',
+            name='level_norm',
             label='Level norm',
             knowl='mf.bianchi.level',
             example='1',
             example_span='e.g. 1 or 1-100')
         dimension = TextBox(
-            'dimension',
+            name='dimension',
             label='Dimension',
             knowl='mf.bianchi.spaces',
             example='1',
             example_span='e.g. 1 or 2')
 
         sign = SelectBox(
-            'sfe',
+            name='sfe',
             label='Sign',
             knowl='mf.bianchi.sign',
             options=[("", "any"), ("+1", "+1"), ("-1", "-1")]
         )
         base_change = SelectBox(
-            'include_base_change',
+            name='include_base_change',
             label='Base change',
             knowl='mf.bianchi.base_change',
             options=[("", "include"), ("off", "exclude")]
         )
         CM = SelectBox(
-            'include_cm',
+            name='include_cm',
             label='CM',
             knowl='mf.bianchi.cm',
             options=[("", "include"), ("off", "exclude"), ("only", "only")]
