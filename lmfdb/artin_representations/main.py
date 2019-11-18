@@ -98,6 +98,7 @@ def artin_representation_jump(info):
              learnmore=learnmore_list,
              shortcuts={'natural':artin_representation_jump},
              bread=lambda:[('Artin Representations', url_for(".index")), ('Search Results', ' ')],
+             url_for_label=lambda label: url_for('.render_artin_representation_webpage', label=label),
              initfunc=lambda:ArtinRepresentation)
 def artin_representation_search(info, query):
     query['Hide'] = 0

@@ -112,8 +112,15 @@ Artin representation: <input type='text' name='natural' size='50' example='3.2e3
     </tr>
   </table>
   
+  <table>
+    <tr>
+      <td>Display: </td>
+      {% for type, desc in [('List', 'List of Results'), ('Random', 'Random Result')] %}
+      <td class="button"><button type='submit' name='search_type' value='{{type}}' style="width: 170px;">{{desc}}</button></td>
+      {% endfor %}
+    </tr>
+  </table>
 
-<td><button type='submit' value='Search'>Search</button></td>
 </form>
 {# 
     <br>
