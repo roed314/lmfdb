@@ -61,13 +61,13 @@ Browse {{ KNOWL('mf.bianchi.spaces', title='newform spaces')}} by  {{ KNOWL('nf'
 <table>
 <tr>
 <td> {{ KNOWL('nf', title='Base field')}}</td> 
-<td><input type='text' name='field_label' placeholder='2.0.4.1' size=10>
+<td><input type='text' name='field_label' placeholder='2.0.4.1' style="width: 160px;">
 <td colspan=4><span class="formexample"> either a field label, e.g. 2.0.4.1 for
     \(\mathbb{Q}(\sqrt{-1})\), or a nickname, e.g. Qsqrt-1 </span></td>
 </tr>
 <tr>
 <td>{{ KNOWL('mf.bianchi.level', title='Level norm') }}</td>
-<td><input type='text' name='level_norm' placeholder='1' size=10>
+<td><input type='text' name='level_norm' placeholder='1' style="width: 160px;">
 <td><span class="formexample"> e.g. 1 or 1-100</td>
 <td>{{ KNOWL('mf.bianchi.newform', title='Dimension') }}</td>
 <td><input type='text' name='dimension' placeholder='1' size=5>
@@ -83,7 +83,7 @@ Browse {{ KNOWL('mf.bianchi.spaces', title='newform spaces')}} by  {{ KNOWL('nf'
 <td>&nbsp;</td>
 <td>{{ KNOWL('mf.bianchi.base_change',title="Base change") }} </td>
   <td>
-         <select name='include_base_change', style="width: 105px">
+         <select name='include_base_change', style="width: 170px">
            <option value="off">exclude</option>
            <option value="" selected="yes">include</option>
          </select>
@@ -92,7 +92,7 @@ Browse {{ KNOWL('mf.bianchi.spaces', title='newform spaces')}} by  {{ KNOWL('nf'
     {{ KNOWL('mf.bianchi.cm',title="CM") }}
     </td>
      <td>
-         <select name='include_cm', style="width: 105px">
+         <select name='include_cm', style="width: 170px">
            <option value="" selected="yes">include</option>
            <option value="exclude">exclude</option>
            <option value="only">only</option>
@@ -100,15 +100,18 @@ Browse {{ KNOWL('mf.bianchi.spaces', title='newform spaces')}} by  {{ KNOWL('nf'
      </td>
     </tr>
 <tr>
-<td>Results to display</td>
-<td><input type='text' name='count' value=50 size=10></td>
-<td><span class="formexample"> &nbsp;</td>
-</tr>
 <tr>
-<td colspan=3><button type='submit' value='Search'>Search</button>
-</td>
-</tr>
+<td align="left">Results to display</td><td> <input type='text' name='count' value="{{info.count}}" style="width: 160px;"></td>
+<tr>
 </table>
+  <table>
+    <tr>
+      <td>Display: </td>
+      {% for type, desc in [('List', 'List of Results'), ('Random', 'Random Result')] %}
+      <td class="button"><button type='submit' name='search_type' value='{{type}}' style="width: 170px;">{{desc}}</button></td>
+      {% endfor %}
+    </tr>
+  </table>
 </form>
 
 

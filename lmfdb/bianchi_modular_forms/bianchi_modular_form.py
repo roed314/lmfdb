@@ -114,6 +114,7 @@ def bianchi_modular_form_postprocess(res, info, query):
                        "cm": lambda v: cm_info(v.pop('CM', '?'))},
              bread=lambda:[('Bianchi Modular Forms', url_for(".index")),
                            ('Search Results', '.')],
+             url_for_label=bianchi_modular_form_by_label,
              learnmore=learnmore_list,
              properties=lambda: [])
 
