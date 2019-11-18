@@ -260,7 +260,7 @@ class SearchArray(UniqueRepresentation):
         )
 
     def html(self, info=None):
-        hsi = "" if info is None else "{%% include 'hidden_search_inputs.html' %%}"
+        hsi = "" if info is None else "{% include 'hidden_search_inputs.html' %}"
         return "\n".join([hsi,
                           self.main_table(info),
                           self.buttons(info)])
