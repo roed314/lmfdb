@@ -64,12 +64,12 @@ A <a href={{url_for('.random_curve')}}>random elliptic curve</a> from the databa
     <tr>
      <td>{{ KNOWL('nf',title = "Base field") }}</td>
      <td>
-     <input type='text' name='field' example="2.2.5.1" size=10 value="{{field_label}}" />
+     <input type='text' name='field' example="2.2.5.1" style="width: 160px;" value="{{field_label}}" />
      </td>
      <td><span class="formexample"> e.g. 2.2.5.1 or Qsqrt5</span></td>
   <td>{{ KNOWL('ec.base_change',title="Base change curves") }}</td>
   <td>
-         <select name='include_base_change'>
+         <select name='include_base_change' style="width: 170px;">
           {% set base_change_values = [('', 'include'), ('off', 'exclude'),  ('only', 'only')] %}
           {% for val, text in base_change_values %}
           <option value="{{ val }}">{{ text }}</option>
@@ -81,12 +81,12 @@ A <a href={{url_for('.random_curve')}}>random elliptic curve</a> from the databa
    <tr>
      <td>{{ KNOWL('ec.conductor',title = "Conductor norm") }}</td>
      <td>
-     <input type='text' name='conductor_norm' example="31" size=10 value="{{conductor_norm}}" />
+     <input type='text' name='conductor_norm' example="31" style="width: 160px;" value="{{conductor_norm}}" />
      </td>
      <td><span class="formexample"> e.g. 31 or 1-100</span></td>
      <td>{{ KNOWL('ec.q_curve',title="\(\Q\)-curves") }} </td>
   <td>
-         <select name='include_Q_curves'>
+         <select name='include_Q_curves' style="width: 170px;">
            <option value="" selected>include</option>
            <option value="exclude">exclude</option>
            <option value="only">only</option>
@@ -118,7 +118,7 @@ A <a href={{url_for('.random_curve')}}>random elliptic curve</a> from the databa
           {{ KNOWL('ec.torsion_order',title="Torsion order") }}
           </td>
           <td>
-          <input type='text' name='torsion' example="2" size=10 value="{{torsion}}" />
+          <input type='text' name='torsion' example="2" style="width: 160px;" value="{{torsion}}" />
           </td>
           <td>
           <span class="formexample"> e.g. 2 </span>
@@ -140,14 +140,14 @@ A <a href={{url_for('.random_curve')}}>random elliptic curve</a> from the databa
         {{ KNOWL('ec.isogeny',title="Cyclic isogeny degree") }}
       </td>
       <td>
-        <input type='text' name='isodeg' example="16" size=10 />
+        <input type='text' name='isodeg' example="16" style="width: 160px;" />
       </td>
       <td>
         <span class="formexample"> e.g. 16 </span>
       </td>
   <td>{{ KNOWL('ec.isogeny',title="Isogenous curves") }}</td>
   <td>
-         <select name='include_isogenous'>
+         <select name='include_isogenous' style="width: 170px;">
            <option value="off">exclude</option>
            <option value="" selected>include</option>
          </select>
@@ -159,7 +159,7 @@ A <a href={{url_for('.random_curve')}}>random elliptic curve</a> from the databa
      "CM curves") }} </td>
       <td>&nbsp;</td>
      <td>
-         <select name='include_cm'>
+         <select name='include_cm' style="width: 170px;">
            <option value="" selected>include</option>
            <option value="exclude">exclude</option>
            <option value="only">only</option>
