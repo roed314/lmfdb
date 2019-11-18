@@ -111,6 +111,7 @@ class SearchWrapper(Wrapper):
         self.url_for_label = url_for_label
         self.cleaners = cleaners
         self.split_ors = split_ors
+        self.random_projection = random_projection
 
     def __call__(self, info):
         info = to_dict(info, exclude=["bread"])  # I'm not sure why this is required...
