@@ -115,8 +115,10 @@ def bianchi_modular_form_postprocess(res, info, query):
              bread=lambda:[('Bianchi Modular Forms', url_for(".index")),
                            ('Search Results', '.')],
              url_for_label=lambda label: url_for(".render_bmf_webpage",
-                                                 **zip(['field_label', 'level_label', 'label_suffix'],
-                                                      label.split('-'))),
+                                                 **dict(zip(
+                                                     ['field_label', 'level_label', 'label_suffix'],
+                                                      label.split('-')
+                                                 ))),
              learnmore=learnmore_list,
              properties=lambda: [])
 
