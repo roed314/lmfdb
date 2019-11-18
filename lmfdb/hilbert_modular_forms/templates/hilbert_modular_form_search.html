@@ -16,10 +16,10 @@
 </tr>
 
 <tr>
-<td><input type='text' name='field_label' placeholder="2.2.5.1" size=10 value={{info.field_label}}>
-<td><input type='text' name='deg' placeholder='2' size=10 value={{info.deg}}>
-<td><input type='text' name='disc' placeholder='1..100'  size=10 value={{info.disc}}>
-<td><select name='cm'>
+<td><input type='text' name='field_label' placeholder="2.2.5.1" style="width: 160px;" value={{info.field_label}}>
+<td><input type='text' name='deg' placeholder='2' style="width: 160px;" value={{info.deg}}>
+<td><input type='text' name='disc' placeholder='1..100'  style="width: 160px;" value={{info.disc}}>
+<td><select name='cm' style="width: 170px;">
 {% if info.cm == "only" %}
        <option value="">include</option>
        <option value="exclude">exclude</option>
@@ -44,10 +44,10 @@
 <td>{{ KNOWL('mf.base_change',title="Base Change") }}</td>
 </tr>
 <tr>
-<td><input type='text' name='weight' placeholder='[2,2]' size=10 value={{info.weight}}>
-<td><input type='text' name='level_norm' placeholder='1'  size=10 value={{info.level_norm}}>
-<td><input type='text' name='dimension' placeholder='1' size=10 value={{info.dimension}}>
-<td><select name='bc'>
+<td><input type='text' name='weight' placeholder='[2,2]' style="width: 160px;" value={{info.weight}}>
+<td><input type='text' name='level_norm' placeholder='1'  style="width: 160px;" value={{info.level_norm}}>
+<td><input type='text' name='dimension' placeholder='1' style="width: 160px;" value={{info.dimension}}>
+<td><select name='bc' style="width: 170px;">
 {% if info.bc == "only" %}
        <option value="">include</option>
        <option value="exclude">exclude</option>
