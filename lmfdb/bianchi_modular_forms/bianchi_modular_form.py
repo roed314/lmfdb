@@ -128,6 +128,7 @@ def bianchi_modular_form_search(info, query):
     """Function to handle requests from the top page, either jump to one
     newform or do a search.
     """
+    info["search_array"] = BMFSearchArray()
     parse_nf_string(info, query, 'field_label', name='base number field')
     parse_noop(info, query, 'label')
     parse_ints(info, query, 'dimension')
