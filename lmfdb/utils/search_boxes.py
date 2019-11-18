@@ -240,7 +240,7 @@ class SearchArray(UniqueRepresentation):
                 for val, desc in self.search_types
             ]
         elif info["search_type"] == 'DynStats':
-            return "<table>\n{%% include 'dynamic_stats_input.html' %%}\n</table>"
+            return "<table>\n{% include 'dynamic_stats_input.html' %}\n</table>"
 
         else:
             search_types = [(info["search_type"], "Search again")] + [
