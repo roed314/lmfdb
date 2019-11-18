@@ -4,68 +4,10 @@
 <h2> Further refine search </h2>
 
 <form id='re-search' onsubmit="cleanSubmit(this.id)">
-{% include 'hidden_search_inputs.html' %}
-<table>
-<tr>
-<td>{{ KNOWL('nf',title='Base Field') }}</td>
-<td>{{ KNOWL('mf.bianchi.level', title='Level norm') }}</td>
-<td>{{ KNOWL('mf.bianchi.newform', title='Dimension') }}</td>
-</tr>
-<tr>
-<td><input type='text' name='field_label' placeholder='2.0.4.1' style="width: 160px;" value={{info.field_label}}>
-<td><input type='text' name='level_norm' placeholder='1' style="width: 160px;" value={{info.level_norm}}>
-<td><input type='text' name='dimension' placeholder='1' style="width: 160px;"  value={{info.dimension}}>
-</tr>
-<tr>
-<td>{{ KNOWL('mf.bianchi.sign', title='Sign') }}</td>
-<td>{{ KNOWL('mf.bianchi.base_change', title='Base change') }}</td>
-<td>{{ KNOWL('mf.bianchi.cm', title='CM') }}</td>
-</tr>
-<tr>
-<td> <select name='sfe' style="width: 170px;">
-    {% if info.sfe == "any" %}
-    <option value="" selected>any</option>
-    <option value="+1">+1</option>
-    <option value="-1">-1</option>
-    {% elif info.sfe == "+1" %}
-    <option value="">any</option>
-    <option value="+1" selected>+1</option>
-    <option value="-1">-1</option>
-    {% else %}
-    <option value="">any</option>
-    <option value="+1">+1</option>
-    <option value="-1" selected>-1</option>
-    {% endif %}
-  </select>
-<td> <select name='include_base_change' style="width: 170px;">
-    {% if info.include_base_change == "off" %}
-    <option value="off" selected>exclude</option>
-    <option value="" >include</option>
-    {% else %}
-    <option value="off">exclude</option>
-    <option value="" selected>include</option>
-    {% endif %}
-  </select>
-<td>
-  <select name='include_cm' style="width: 170px;">
-    {% if info.include_cm == "only" %}
-    <option value="">include</option>
-    <option value="exclude">exclude</option>
-    <option value="only" selected>only</option>
-    {% elif info.include_cm == "exclude" %}
-    <option value="">include</option>
-    <option value="exclude" selected>exclude</option>
-    <option value="only">only</option>
-    {% else %}
-    <option value="" selected>include</option>
-    <option value="exclude">exclude</option>
-    <option value="only">only</option>
-    {% endif %}
-  </select>
-</td>
-</tr>
-{% set search_types = [('List', 'List of Results'), ('Random', 'Random Result')] %}
-<tr style="height: 20px;"></tr>
+  {% include 'hidden_search_inputs.html' %}
+  {{ info.search_array.html(info) | safe }}
+  <table>
+    {% set search_types = [('List', 'List of Results'), ('Random', 'Random Result')] %}
     <tr>
       <td><button type='submit' name='search_type' value='{{info.search_type}}' style="width: 170px;" onclick='resetStart()'>Search again</button></td>
       {% for type, desc in search_types %}
@@ -74,7 +16,7 @@
       {% endif %}
       {% endfor %}
     </tr>
-</table>
+  </table>
 </form>
 
 {% include 'matches.html' %}

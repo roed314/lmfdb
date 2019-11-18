@@ -443,8 +443,8 @@ class BMFSearchArray(SearchArray):
         browse_array = [
             [field],
             [level, dimension],
-            [sign, base_change],
-            [count, CM]
+            [sign, base_change, CM],
+            [count]
         ]
         refine_array = [
             [field, level, dimension],
