@@ -321,6 +321,7 @@ def download_search(info):
              projection=['label', 'group', 'deg', 'g', 'orbit_size', 'geomtype'],
              cleaners={'geomtype': lambda v:geometry_types_dict[v['geomtype']]},
              bread=lambda:[('Belyi Maps', url_for(".index")), ('Search Results', '.')],
+             url_for_label=lambda label: url_for(".by_url_belyi_search_url", smthorlabel=label),
              credit=lambda:credit_string,
              learnmore=learnmore_list)
 def belyi_search(info, query):
