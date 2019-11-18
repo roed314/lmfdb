@@ -164,6 +164,7 @@ def local_field_jump(info):
              shortcuts={'jump_to': local_field_jump},
              bread=lambda:get_bread([("Search Results", ' ')]),
              learnmore=learnmore_list,
+             url_for_label=lambda label: url_for('.by_label', label=label),
              credit=lambda:LF_credit)
 def local_field_search(info,query):
     parse_galgrp(info,query,'gal',qfield=('n','galT'))

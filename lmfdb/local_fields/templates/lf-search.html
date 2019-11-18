@@ -8,27 +8,33 @@
 
 <tr>
 <td align=left>{{KNOWL('lf.degree',title='Degree')}}</td>
-<td align=left> <input type='text' name='n' placeholder='6' size=3 value="{{info.n}}"></td>
+<td align=left> <input type='text' name='n' placeholder='6' style="width: 160px;" value="{{info.n}}"></td>
 <td align=left> {{KNOWL('lf.discriminant_exponent',title='Discriminant exponent $c$')}}</td>
-<td align=left> <input type="text" name="c" placeholder='8' size="3" value="{{info.c}}" ></td>
+<td align=left> <input type="text" name="c" placeholder='8' style="width: 160px;" value="{{info.c}}" ></td>
 <td align=left> {{KNOWL('nf.galois_group',title='Galois group')}}</td>
-<td align=left> <input type="text" name="gal" placeholder='5T3' size="8" value="{{info.gal}}" ></td>
+<td align=left> <input type="text" name="gal" placeholder='5T3' style="width: 160px;" value="{{info.gal}}" ></td>
 </tr>
 
 <tr>
 <td align=left> {{KNOWL('lf.qp',title='Prime $p$')}}</td>
-<td align=left> <input type="text" name="p" placeholder='3' size="3" value="{{info.p}}" ></td>
+<td align=left> <input type="text" name="p" placeholder='3' style="width: 160px;" value="{{info.p}}" ></td>
 <td align=left> {{KNOWL('lf.ramification_index',title='Ramification index $e$')}}</td>
-<td align=left> <input type="text" name="e" placeholder='3' size="3" value="{{info.e}}" ></td>
+<td align=left> <input type="text" name="e" placeholder='3' style="width: 160px;" value="{{info.e}}" ></td>
 
 <td align=left> {{KNOWL('lf.top_slope',title='Top slope')}}</td>
-<td align=left> <input type="text" name="topslope" placeholder='4/3' size="8" value="{{info.topslope}}"></td>
+<td align=left> <input type="text" name="topslope" placeholder='4/3' style="width: 160px;" value="{{info.topslope}}"></td>
 </tr>
 
-<tr>
-<td align=left colspan="2">
-<button type='submit' value='refine' onclick='resetStart()'>Search again</button>
-</td></tr>
+{% set search_types = [('List', 'List of Results'), ('Random', 'Random Result')] %}
+<tr style="height: 20px;"></tr>
+    <tr>
+      <td><button type='submit' name='search_type' value='{{info.search_type}}' style="width: 170px;" onclick='resetStart()'>Search again</button></td>
+      {% for type, desc in search_types %}
+      {% if info.search_type != type %}
+      <td><button type='submit' name='search_type' value='{{ type }}' style="width: 170px;">{{ desc }}</button></td>
+      {% endif %}
+      {% endfor %}
+    </tr>
 </table>
 </form>
 
