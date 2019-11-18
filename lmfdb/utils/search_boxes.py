@@ -184,7 +184,7 @@ class TextBoxWithSelect(TextBox):
         )
 
 class SearchArray(UniqueRepresentation):
-    def __init__(self, browse_array, refine_array, search_types=[('List', 'List of Results'), ('Random', 'Random Result')])):
+    def __init__(self, browse_array, refine_array, search_types=[('List', 'List of Results'), ('Random', 'Random Result')]):
         self.browse_array = browse_array
         self.refine_array = refine_array
         self.all_search = []
