@@ -234,7 +234,8 @@ class SearchArray(UniqueRepresentation):
     def buttons(self, info=None):
         button_str = "<td class='button'><button type='submit' name='search_type' value='{val}' style='width: 170px;' {onclick} >{desc}</button></td>"
         if info is None:
-            buttons = [button_str.format(val=val, onclick='', desc=desc) for typ, desc in self.search_types]
+            buttons = ['<td>Display: </td>']
+            buttons += [button_str.format(val=val, onclick='', desc=desc) for typ, desc in self.search_types]
         else:
             search_types = [(info['search_type'], 'Search again')] + [(v, d) for v, d in self.search_types if v != info['search_type']]
             buttons = [button_str.format(val=val, onclick="onclick='resetStart()'", desc=desc) for typ, desc in self.search_types]
