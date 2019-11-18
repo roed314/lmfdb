@@ -25,10 +25,10 @@
 </tr>
 
 <tr>
-<td><input type='text' name='field' placeholder='2.2.5.1' size=10 value="{{info.field}}" /></td>
-<td align=left><input type='text' name='conductor_norm' placeholder='31' size=10
+<td><input type='text' name='field' placeholder='2.2.5.1' style="width: 160px;" value="{{info.field}}" /></td>
+<td align=left><input type='text' name='conductor_norm' placeholder='31' style="width: 160px;"
                       value="{{info.conductor_norm}}"></td>
-<td>         <select name='include_isogenous'>
+<td>         <select name='include_isogenous' style="width: 170px;">
 {% if info.query.number %}
            <option value="off" selected="yes">exclude</option>
            <option value="">include</option>
@@ -40,7 +40,7 @@
 </td>
 
 <td>
-  <select name='include_base_change'>
+  <select name='include_base_change' style="width: 170px;">
     {% set base_change_values = [('', 'include'), ('off', 'exclude'),  ('only', 'only')] %}
     {% for val, text in base_change_values %}
     <option value="{{ val }}"{% if info.include_base_change == val %} selected='yes'{% endif %}>{{ text }}</option>
@@ -48,7 +48,7 @@
   </select>
 </td>
 
-<td>         <select name='include_Q_curves'>
+<td>         <select name='include_Q_curves' style="width: 170px;">
 {% if info.include_Q_curves == "only" %}
            <option value="">include</option>
            <option value="exclude">exclude</option>
@@ -66,7 +66,7 @@
 {% endif %}
          </select>
 </td>
-<td>         <select name='include_cm'>
+<td>         <select name='include_cm' style="width: 170px;">
 {% if info.include_cm == "only" %}
            <option value="">include</option>
            <option value="exclude">exclude</option>
@@ -93,7 +93,7 @@
 </tr>
 <tr>
           <td>
-          <input type='text' name='torsion' placeholder='2' size=10 value="{{info.torsion}}" />
+          <input type='text' name='torsion' placeholder='2' style="width: 160px;" value="{{info.torsion}}" />
           </td>
           <td>
           <input type='text' name='isodeg' size=5 placeholder='16' value={{info.isodeg}}>
@@ -102,7 +102,7 @@
             {{ tor_struct_search_nf(info.torsion_structure)| safe }}
           </td>
           <td colspan=2>
-          <input type='text' name='jinv' placeholder='105474/49+a*34213/49' size=20 value="{{info.jinv}}" />
+          <input type='text' name='jinv' placeholder='105474/49+a*34213/49' style="width: 350px;" value="{{info.jinv}}" />
           </td>
 
 </tr>
