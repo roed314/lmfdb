@@ -59,14 +59,6 @@ Browse {{ KNOWL('mf.bianchi.spaces', title='newform spaces')}} by  {{ KNOWL('nf'
 
 <form id='search' onsubmit="cleanSubmit(this.id)">
   {{ info.search_array.html() | safe }}
-  <table>
-    <tr>
-      <td>Display: </td>
-      {% for type, desc in [('List', 'List of Results'), ('Random', 'Random Result')] %}
-      <td class="button"><button type='submit' name='search_type' value='{{type}}' style="width: 170px;">{{desc}}</button></td>
-      {% endfor %}
-    </tr>
-  </table>
 </form>
 
 

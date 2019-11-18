@@ -514,7 +514,10 @@ class AbvarSearchArray(SearchArray):
             [galois_group],
             [count],
         ]
-        SearchArray.__init__(self, browse_array, refine_array)
+        search_types = [('List', 'List of Results'),
+                        ('Counts', 'Counts Table'),
+                        ('Random', 'Random Result')]
+        SearchArray.__init__(self, browse_array, refine_array, search_types=search_types)
 
 def common_parse(info, query):
     info["search_array"] = AbvarSearchArray()

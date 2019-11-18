@@ -239,6 +239,9 @@ class SearchArray(UniqueRepresentation):
                 button_str.format(val=val, onclick="", desc=desc)
                 for val, desc in self.search_types
             ]
+        elif info["search_type"] == 'DynStats':
+            return "<table>\n{%% include 'dynamic_stats_input.html' %%}\n</table>"
+
         else:
             search_types = [(info["search_type"], "Search again")] + [
                 (v, d) for v, d in self.search_types if v != info["search_type"]
@@ -257,5 +260,8 @@ class SearchArray(UniqueRepresentation):
         )
 
     def html(self, info=None):
-        return "\n".join([self.main_table(info), self.buttons(info)])
+        hsi = "" if info is None else "{%% include 'hidden_search_inputs.html' %%}"
+        return "\n".join([hsi,
+                          self.main_table(info),
+                          self.buttons(info)])
 
