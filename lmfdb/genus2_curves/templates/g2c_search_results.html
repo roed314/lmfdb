@@ -54,10 +54,9 @@
 <tr>
 <td>{{ KNOWL('g2c.st_group', title='\(\mathrm{ST}\)') }}</td>
 <td>{{ KNOWL('g2c.st_group_identity_component', title='\(\mathrm{ST}^0\)') }}</td>
+<td>{{ KNOWL('g2c.geom_end_alg', title='\(\overline{\Q}\)-end algebra') }}</td>
 <td>{{ KNOWL('g2c.aut_grp', title='\(\mathrm{Aut}(X)\)') }}</td>
 <td>{{ KNOWL('g2c.geom_aut_grp',   title='\(\mathrm{Aut}(X_{\overline{\Q}})\)') }}</td>
-<td>{{ KNOWL('g2c.geom_end_alg', title='\(\overline{\Q}\)-end algebra') }}</td>
-<td>{{ KNOWL('g2c.locally_solvable',   title='Locally solvable') }}</td>
 </tr>
 
 <tr>
@@ -71,6 +70,12 @@
     <option ></option>
     {% for G in info.real_geom_end_alg_list %}
         <option value='{{G}}' {{ "selected" if G == info.real_geom_end_alg }}>{{info.real_geom_end_alg_to_ST0_dict[G]}}</option>
+    {% endfor %}
+</select></td>
+<td><select name='geom_end_alg' style="width: 170px">
+    <option ></option>
+    {% for G in info.geom_end_alg_list %}
+        <option value='{{G}}' {{ "selected" if G == info.geom_end_alg }} >{{info.geom_end_alg_dict[G]}}</option>
     {% endfor %}
 </select></td>
 
@@ -88,24 +93,16 @@
     {% endfor %}
 </select></td>
 
-<td><select name='geom_end_alg' style="width: 170px">
-    <option ></option>
-    {% for G in info.geom_end_alg_list %}
-        <option value='{{G}}' {{ "selected" if G == info.geom_end_alg }} >{{info.geom_end_alg_dict[G]}}</option>
-    {% endfor %}
-</select></td>
 
-<td><select name='locally_solvable' style="width: 170px">
-  <option ></option>
-  <option value="True" {{ "selected" if info.locally_solvable == 'True'}}>True</option>
-  <option value="False" {{ "selected" if info.locally_solvable == 'False'}}>False</option>
-</select></td>
+
+
 
 
 
 </tr>
 
 <tr>
+<td>{{ KNOWL('g2c.locally_solvable',   title='Locally solvable') }}</td>
 <td>{{ KNOWL('ag.geom_simple', title='\(\overline{\mathbb Q}\)-simple') }}</td>
 <td align=left>{{KNOWL('g2c.good_reduction', title='Bad primes')}}
   <div class='float-right'>
@@ -140,6 +137,11 @@
 
 
 <tr>
+<td><select name='locally_solvable' style="width: 170px">
+  <option ></option>
+  <option value="True" {{ "selected" if info.locally_solvable == 'True'}}>True</option>
+  <option value="False" {{ "selected" if info.locally_solvable == 'False'}}>False</option>
+</select></td>
 <td><select name='is_simple_geom' style="width: 170px">
   <option ></option>
   <option value="True" {{ "selected" if info.is_simple_geom == 'True'}}>True</option>
