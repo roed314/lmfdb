@@ -101,6 +101,7 @@ def make_order_key(order):
              learnmore=learnmore_list,
              shortcuts={'jump_to': lambda info:redirect(url_for('.by_label', label=info['jump_to']).strip(), 301)},
              bread=lambda: get_bread([("Search Results", ' ')]),
+             url_for_label=lambda label: url_for('.by_label', label=label),
              credit=lambda: GG_credit)
 def galois_group_search(info, query):
     def includes_composite(s):
