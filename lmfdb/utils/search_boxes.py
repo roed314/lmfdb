@@ -248,13 +248,13 @@ class SearchArray(UniqueRepresentation):
                 for val, desc in search_types
             ]
 
-    return (
-        '  <table border="0">'
-        + "\n    <tr>"
-        + "\n      ".join(buttons)
-        + "\n    <tr>"
-        + "\n  </table>"
-    )
+        return (
+            '  <table border="0">'
+            + "\n    <tr>"
+            + "\n      ".join(buttons)
+            + "\n    <tr>"
+            + "\n  </table>"
+        )
 
     def html(self, info=None):
         return "\n".join([self.main_table(info), self.buttons(info)])
