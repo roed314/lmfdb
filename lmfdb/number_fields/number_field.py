@@ -343,7 +343,7 @@ def random_nfglobal():
     #return render_field_webpage({'label': label})
     #This version uses the number field's own URL:
     #url =
-    return redirect(url_for(".by_label", label= label))
+    return redirect(url_for(".by_label", label=label))
 
 
 def coeff_to_nf(c):
@@ -724,6 +724,7 @@ def number_field_jump(info):
              split_ors=['galois_group'],
              bread=lambda:[('Global Number Fields', url_for(".number_field_render_webpage")),
                            ('Search Results', '.')],
+             url_for_label=lambda label: url_for(".by_label", label=label),
              learnmore=learnmore_list)
 def number_field_search(info, query):
     parse_ints(info,query,'degree')
