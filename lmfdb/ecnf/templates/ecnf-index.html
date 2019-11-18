@@ -94,22 +94,6 @@ A <a href={{url_for('.random_curve')}}>random elliptic curve</a> from the databa
      </td>
      <td><span class="formexample"> e.g. 31 or 1-100</span></td>
 
-  <td>{{ KNOWL('ec.isogeny',title="Isogenous curves") }}</td>
-  <td>
-         <select name='include_isogenous'>
-           <option value="off">exclude</option>
-           <option value="" selected>include</option>
-         </select>
-  </td>
-     <td>{{ KNOWL('ec.complex_multiplication',title =
-     "CM curves") }} </td>
-     <td>
-         <select name='include_cm'>
-           <option value="" selected>include</option>
-           <option value="exclude">exclude</option>
-           <option value="only">only</option>
-         </select>
-     </td>
  </tr>
 
     <tr>
@@ -162,9 +146,25 @@ A <a href={{url_for('.random_curve')}}>random elliptic curve</a> from the databa
         <span class="formexample"> e.g. 16 </span>
       </td>
       <td colspan=3>&nbsp;</td>
+  <td>{{ KNOWL('ec.isogeny',title="Isogenous curves") }}</td>
+  <td>
+         <select name='include_isogenous'>
+           <option value="off">exclude</option>
+           <option value="" selected>include</option>
+         </select>
+  </td>
     </tr>
  <tr>
 <td>Results to display</td><td> <input type='text' name='count' value=50 size='10'></td>
+     <td>{{ KNOWL('ec.complex_multiplication',title =
+     "CM curves") }} </td>
+     <td>
+         <select name='include_cm'>
+           <option value="" selected>include</option>
+           <option value="exclude">exclude</option>
+           <option value="only">only</option>
+         </select>
+     </td>
  </tr>
 
   </table>
