@@ -30,6 +30,19 @@
   <td> {{ tor_struct_search_nf(info.torsion_structure)| safe }} </td>
 </tr>
 <tr>
+<td align=left>{{ KNOWL('ec.isogeny', title='Isogeny degree') }}</td>
+<td align=left>{{ KNOWL('ec.j_invariant', title="j-invariant") }}</td>
+</tr>
+<tr>
+          <td>
+          <input type='text' name='isodeg' size=5 placeholder='16' style="width: 160px;" value={{info.isodeg}}>
+          </td>
+          <td colspan=2>
+          <input type='text' name='jinv' placeholder='105474/49+a*34213/49' style="width: 350px;" value="{{info.jinv}}" />
+          </td>
+
+</tr>
+<tr>
 <td align=left>{{ KNOWL('ec.isogeny',title="Isogenous curves") }}</td>
 <td align=left>{{ KNOWL('ec.base_change',title="Base change curves") }}</td>
 <td align=left>{{ KNOWL('ec.q_curve',title="\(\Q\)-curves") }}</td>
@@ -93,19 +106,6 @@
 {% endif %}
          </select>
 </td>
-</tr>
-<tr>
-<td align=left>{{ KNOWL('ec.isogeny', title='Isogeny degree') }}</td>
-<td align=left>{{ KNOWL('ec.j_invariant', title="j-invariant") }}</td>
-</tr>
-<tr>
-          <td>
-          <input type='text' name='isodeg' size=5 placeholder='16' style="width: 160px;" value={{info.isodeg}}>
-          </td>
-          <td colspan=2>
-          <input type='text' name='jinv' placeholder='105474/49+a*34213/49' style="width: 350px;" value="{{info.jinv}}" />
-          </td>
-
 </tr>
 
 {% set search_types = [('List', 'List of Results'), ('Random', 'Random Result')] %}
