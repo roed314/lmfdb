@@ -17,12 +17,12 @@
 </tr>
 
 <tr>
-<td><input type='text' name='cond' placeholder='169' style="width: 100px" value="{{info.cond}}"></td>
-<td><input type='text' name='abs_disc' placeholder='169' style="width: 100px" value="{{info.abs_disc}}"></td>
-<td><input type='text' name='num_rat_pts' placeholder='1'  style="width: 100px" value="{{info.num_rat_pts}}">
-<td><input type='text' name='num_rat_wpts' placeholder='1'  style="width: 100px" value="{{info.num_rat_wpts}}">
-<td><input type='text' name='torsion_order' placeholder='2'  style="width: 100px" value="{{info.torsion_order}}">
-<td><input type='text' name='torsion' placeholder='[2,2,2]'  style="width: 100px" value="{{info.torsion}}">
+<td><input type='text' name='cond' placeholder='169' style="width: 160px" value="{{info.cond}}"></td>
+<td><input type='text' name='abs_disc' placeholder='169' style="width: 160px" value="{{info.abs_disc}}"></td>
+<td><input type='text' name='num_rat_pts' placeholder='1'  style="width: 160px" value="{{info.num_rat_pts}}">
+<td><input type='text' name='num_rat_wpts' placeholder='1'  style="width: 160px" value="{{info.num_rat_wpts}}">
+<td><input type='text' name='torsion_order' placeholder='2'  style="width: 160px" value="{{info.torsion_order}}">
+<td><input type='text' name='torsion' placeholder='[2,2,2]'  style="width: 160px" value="{{info.torsion}}">
 </tr>
 
 <tr>
@@ -36,23 +36,23 @@
 
 <tr>
 
-<td><input type='text' name='two_selmer_rank' placeholder='1'  style="width: 100px" value="{{info.two_selmer_rank}}">
-<td><input type='text' name='analytic_rank' placeholder='1'  style="width: 100px" value="{{info.analytic_rank}}">
+<td><input type='text' name='two_selmer_rank' placeholder='1'  style="width: 160px" value="{{info.two_selmer_rank}}">
+<td><input type='text' name='analytic_rank' placeholder='1'  style="width: 160px" value="{{info.analytic_rank}}">
 
-<td colspan='2'><select name='geometric_invariants_type' style="width: 110px">
+<td colspan='2'><select name='geometric_invariants_type' style="width: 170px">
   <option value='' {{ "selected" if info.geometric_invariants_type == 'igusa_clebsch_inv'}}>Igusa-Clebsch</option>
   <option value='igusa_inv' {{ "selected" if info.geometric_invariants_type == 'igusa_inv'}}>Igusa</option>
   <option value='g2_inv' {{ "selected" if info.geometric_invariants_type == 'g2_inv'}}>G2</option>
 </select>
 <input type='text' name='geometric_invariants' placeholder='[8,3172,30056,-692224]' style="width: 120px" value="{{info.geometric_invariants}}"></td>
 
-<td><select name='is_gl2_type' style="width: 110px">
+<td><select name='is_gl2_type' style="width: 170px">
   <option ></option>
   <option value="True" {{ "selected" if info.is_gl2_type == 'True'}}>True</option>
   <option value="False" {{ "selected" if info.is_gl2_type == 'False'}}>False</option>
 </select></td>
 
-<td><select name='st_group' style="width: 110px" >
+<td><select name='st_group' style="width: 170px" >
     <option ></option>
     {% for G in info.st_group_list %}
         <option value='{{G}}' {{ "selected"  if G == info.st_group }}>{{info.st_group_dict[G]}}</option>
@@ -71,41 +71,41 @@
 </tr>
 
 
-<td><select name='real_geom_end_alg' style="width: 110px">
+<td><select name='real_geom_end_alg' style="width: 170px">
     <option ></option>
     {% for G in info.real_geom_end_alg_list %}
         <option value='{{G}}' {{ "selected" if G == info.real_geom_end_alg }}>{{info.real_geom_end_alg_to_ST0_dict[G]}}</option>
     {% endfor %}
 </select></td>
 
-<td><select name='aut_grp_id' style="width: 110px">
+<td><select name='aut_grp_id' style="width: 170px">
     <option ></option>
     {% for G in info.aut_grp_list %}
         <option value='{{G}}' {{ "selected"  if G == info.aut_grp_id }}>{{info.aut_grp_dict[G]}}</option>
     {% endfor %}
 </select></td>
 
-<td><select name='geom_aut_grp_id' style="width: 110px">
+<td><select name='geom_aut_grp_id' style="width: 170px">
     <option ></option>
     {% for G in info.geom_aut_grp_list %}
         <option value='{{G}}' {{ "selected" if G == info.geom_aut_grp_id }} >{{info.geom_aut_grp_dict[G]}}</option>
     {% endfor %}
 </select></td>
 
-<td><select name='geom_end_alg' style="width: 110px">
+<td><select name='geom_end_alg' style="width: 170px">
     <option ></option>
     {% for G in info.geom_end_alg_list %}
         <option value='{{G}}' {{ "selected" if G == info.geom_end_alg }} >{{info.geom_end_alg_dict[G]}}</option>
     {% endfor %}
 </select></td>
 
-<td><select name='locally_solvable' style="width: 110px">
+<td><select name='locally_solvable' style="width: 170px">
   <option ></option>
   <option value="True" {{ "selected" if info.locally_solvable == 'True'}}>True</option>
   <option value="False" {{ "selected" if info.locally_solvable == 'False'}}>False</option>
 </select></td>
 
-<td><select name='has_square_sha' style="width: 110px">
+<td><select name='has_square_sha' style="width: 170px">
   <option ></option>
   <option value="True" {{ "selected" if info.has_square_sha == 'True'}}>True</option>
   <option value="False" {{ "selected" if info.has_square_sha == 'False'}}>False</option>
@@ -120,7 +120,7 @@
 
 
 <tr>
-<td><select name='is_simple_geom' style="width: 110px">
+<td><select name='is_simple_geom' style="width: 170px">
   <option ></option>
   <option value="True" {{ "selected" if info.is_simple_geom == 'True'}}>True</option>
   <option value="False" {{ "selected" if info.is_simple_geom == 'False'}}>False</option>
