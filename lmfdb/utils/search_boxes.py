@@ -90,7 +90,7 @@ class TextBox(SearchBox):
     - ``qfield`` -- the corresponding database column (defaults to name).  Not currently used.
     """
 
-    def __init__(self, name=None, label=None, knowl=None, example=None, example_span=None, example_span_colspan=1, colspan=(1, 1, 1), width=15, short_width=10, short_label=None, advanced=False, example_col=None, qfield=None):
+    def __init__(self, name=None, label=None, knowl=None, example=None, example_span=None, example_span_colspan=1, colspan=(1, 1, 1), width=160, short_width=160, short_label=None, advanced=False, example_col=None, qfield=None):
         self.example = example
         self.example_span = example if example_span is None else example_span
         if example_col is None:
@@ -108,10 +108,10 @@ class TextBox(SearchBox):
             keys.append('example="%s"' % self.example)
         if info is None:
             if self.width is not None:
-                keys.append("size=%s" % self.width)
+                keys.append('style="width: %spx"' % self.width)
         else:
             if self.short_width is not None:
-                keys.append("size=%s" % self.short_width)
+                keys.append('style="width: %spx"' % self.short_width)
             if self.name in info:
                 keys.append('value="%s"' % info[self.name])
         return '<input type="text" ' + " ".join(keys) + "/>"
@@ -121,7 +121,7 @@ class TextBox(SearchBox):
             return self.td(self.example_span_colspan) + '<span class="formexample">e.g. %s</span></td>' % self.example_span
 
 class SelectBox(SearchBox):
-    def __init__(self, name=None, label=None, options=[], knowl=None, colspan=(1, 1, 1), width=107, short_width=105, short_label=None, advanced=False, example_col=False, qfield=None):
+    def __init__(self, name=None, label=None, options=[], knowl=None, colspan=(1, 1, 1), width=170, short_width=170, short_label=None, advanced=False, example_col=False, qfield=None):
         SearchBox.__init__(self, name, label, knowl=knowl, colspan=colspan, short_label=short_label, advanced=advanced, example_col=example_col, qfield=qfield)
         self.options = options
         self.width = width

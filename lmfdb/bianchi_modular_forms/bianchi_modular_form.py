@@ -439,6 +439,7 @@ class BMFSearchArray(SearchArray):
         count = TextBox(
             "count",
             label="Results to display",
+            example=50,
         )
 
         browse_array = [
