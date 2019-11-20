@@ -233,7 +233,7 @@ class AbvarSearchArray(SearchArray):
             knowl="lf.newton_polygon",
             example="[0,0,1/2]",
             colspan=(1, 3, 1),
-            width=4*190 - 30,
+            width=3*190 - 30,
             short_label="slopes",
             advanced=True,
         )
@@ -249,7 +249,7 @@ class AbvarSearchArray(SearchArray):
             knowl="ag.fq.point_counts",
             example="[75,7125]",
             colspan=(1, 3, 1),
-            width=4*190 - 30,
+            width=3*190 - 30,
             short_label="points on variety",
             advanced=True,
         )
@@ -259,7 +259,7 @@ class AbvarSearchArray(SearchArray):
             knowl="av.fq.curve_point_counts",
             example="[9,87]",
             colspan=(1, 3, 1),
-            width=4*190 - 30,
+            width=3*190 - 30,
             short_label="points on curve",
             advanced=True,
         )
@@ -272,7 +272,7 @@ class AbvarSearchArray(SearchArray):
             example="4.0.29584.2",
             example_span="4.0.29584.2 or Qzeta8",
             colspan=(1, 3, 1),
-            width=4*190 - 30,
+            width=3*190 - 30,
             advanced=True,
         )
         galois_group = TextBox(
@@ -283,7 +283,7 @@ class AbvarSearchArray(SearchArray):
             example_span="C4, or 8T12, a list of "
             + display_knowl("nf.galois_group.name", "group labels"),
             colspan=(1, 3, 1),
-            width=4*190 - 30,
+            width=3*190 - 30,
             advanced=True,
         )
         #size = TextBox(
@@ -468,7 +468,7 @@ class AbvarSearchArray(SearchArray):
             select_box=simple_quantifier,
             knowl="av.decomposition",
             colspan=(1, 3, 2),
-            width=4*190 - 30,
+            width=3*190 - 30,
             short_width=2*190 - 30,
             example="1.2.b,1.2.b,2.2.a_b",
             advanced=True,
