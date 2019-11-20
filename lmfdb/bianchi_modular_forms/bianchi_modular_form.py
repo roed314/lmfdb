@@ -422,7 +422,8 @@ class BMFSearchArray(SearchArray):
             name='sfe',
             label='Sign',
             knowl='mf.bianchi.sign',
-            options=[("", "any"), ("+1", "+1"), ("-1", "-1")]
+            options=[("", "any"), ("+1", "+1"), ("-1", "-1")],
+            example_col=True
         )
         base_change = SelectBox(
             name='include_base_change',
@@ -445,8 +446,8 @@ class BMFSearchArray(SearchArray):
         browse_array = [
             [field],
             [level, dimension],
-            [sign, base_change, CM],
-            [count]
+            [sign, base_change],
+            [count, CM]
         ]
         refine_array = [
             [field, level, dimension],
