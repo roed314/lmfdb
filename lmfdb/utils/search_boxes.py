@@ -48,8 +48,6 @@ class SearchBox(TdElt):
         self.label_colspan, self.input_colspan, self.short_colspan = colspan
         if short_label is None:
             short_label = label
-            if label is not None:
-                short_label = label.lower()
         self.short_label = short_label
         self.advanced = advanced
         self.example_col = example_col
