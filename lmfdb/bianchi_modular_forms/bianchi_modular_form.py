@@ -400,7 +400,7 @@ class BMFSearchArray(SearchArray):
     def __init__(self):
         field = TextBox(
             name='field_label',
-            label='Base Field',
+            label='Base field',
             knowl='nf',
             example='2.0.4.1',
             example_span='either a field label, e.g. 2.0.4.1 for \(\mathbb{Q}(\sqrt{-1})\), or a nickname, e.g. Qsqrt-1',
@@ -445,8 +445,8 @@ class BMFSearchArray(SearchArray):
 
         browse_array = [
             [field],
-            [level, dimension],
-            [sign, base_change],
+            [level, sign],
+            [dimension, base_change],
             [count, CM]
         ]
         refine_array = [
