@@ -1241,3 +1241,230 @@ def dynamic_statistics():
     CMF_stats().dynamic_setup(info)
     title = 'Cuspidal Newforms: Dynamic Statistics'
     return render_template("dynamic_stats.html", info=info, credit=credit(), title=title, bread=get_bread(other='Dynamic Statistics'), learnmore=learnmore_list())
+
+
+
+
+class CMFSearchArray(SearchArray):
+    def __init__(self):
+        level_quantifier = SelectBox(
+            name='level_type',
+            options=[('', 'unrestricted'),
+                     ('prime', 'prime'),
+                     ('prime_power', 'prime power'),
+                     ('square', 'square'),
+                     ('squarefree', 'squarefree')
+                     ])
+        level = TextBoxWithSelect(
+            name='level',
+            label='Level',
+            knowl='cmf.level',
+            example='4',
+            example_span='e.g. 4, 1-20',
+            select_box=level_quantifier)
+
+        weight_quantifier = SelectBox(
+            name='weight_parity',
+            options=[('', 'any parity'),
+                     ('even', 'even only'),
+                     ('odd', 'odd only')]
+            extra='class="simult_select" onchange="simult_change(event);"')
+
+        weight = TextBoxWithSelect(
+            name='weight',
+            label='Weight',
+            knowl='cmf.weight',
+            example='2',
+            example_span='e.g. 2, 4-8',
+            select_box=weight_quantifier)
+
+        character_quantifier = SelectBox(
+            name='char_parity',
+            options=[('', 'any parity'),
+                     ('even', 'even only'),
+                     ('odd', 'odd only')]
+            extra='class="simult_select" onchange="simult_change(event);"')
+
+        character = TextBoxWithSelect(
+            name='char_label',
+            knowl='cmf.character',
+            label='Character',
+            example='20.d',
+            example_span='e.g. 20.d',
+            select_box=character_quantifier)
+
+        prime_quantifier = SelectBox(
+            name='prime_quantifier',
+            #width=105,
+            options=[('', 'equal to'),
+                     ('subsets', 'subset of'),
+                     ('append', 'superset of')])
+        level_primes = TextBoxWithSelect(
+            name='level_primes',
+            knowl='cmf.bad_prime',
+            label='Bad \(p\)',
+            example='2,3',
+            example_span='e.g. 2,3',
+            selct_box=prime_quantifier)
+
+        char_order = TextBox(
+            name='char_order',
+            label='Character order',
+            knwol='character.dirichlet.order',
+            example='1',
+            example_span='e.g. 1, 2-4')
+        char_primitive = TextBox(
+            name='prim_label',
+            knowl='character.dirichlet.primitive',
+            label='Primitive character',
+            example='1.a',
+            example_span='e.g. 1.a')
+
+        dim_quantifier = SelectBox(
+            name='dim_type',
+            options=[('', 'absolute'), ('rel', 'relative')])
+
+        dim = TextBoxWithSelect(
+            name='dim',
+            label='Dim.',
+            knowl='cmf.dimension',
+            example='1',
+            example_span='e.g. 2, 1-6',
+            select_box=dim_quantifier)
+
+        coefficient_field = TextBox(
+            name='nf_label',
+            knowl='cmf.coefficient_field',
+            label='Coefficient field',
+            example='1.1.1.1',
+            example_span='e.g 4.0.144.1, Qsqrt5')
+
+        analytic_conductor = TextBox(
+            name='analytic_conductor',
+            knowl='cmf.analytic_conductor',
+            label='Analytic conductor',
+            example='1-10',
+            example_span='e.g. 1-10')
+
+        Nk2 = TextBox(
+            name='Nk2',
+            knowl='cmf.Nk2',
+            label='\(Nk^2\)',
+            example='40-100',
+            example_span='e.g. 40-100')
+
+        cm = SelectBox(
+            name='cm',
+            options=[('', 'any CM'), ('yes', 'has CM'), ('no', 'no CM')],
+            width=80)
+        rm = SelectBox(
+            name='rm',
+            options=[('', 'any RM'), ('yes', 'has RM'), ('no', 'no RM')],
+            width=80)
+        self_twist = DoubleSelectBox(
+            label='Self-twists',
+            knowl='cmf.self_twist',
+            select_box1=cm,
+            select_box2=rm)
+
+        self_twist_discs = TextBox(
+            name='self_twist_discs',
+            label='CM/RM discriminant',
+            knowl='cmf.self_twist,
+            example='-3',
+            example_span='e.g. -3')
+
+        inner_twist_count = TextBox(
+            name='inner_twist_count',
+            knowl='cmf.inner_twist_count',
+            label='Inner twist count*',
+            example='1-',
+            example_span='e.g. 0, 1-, 2-3')
+
+        is_self_dual = SelectBox(
+            name='is_self_dual',
+            knowl='cmf.selfdual',
+            label='Is self-dual',
+            options=[('', 'unrestricted'), ('yes', 'yes'), ('no', 'no') ])
+
+        coefficient_ring_index = TextBox(
+            name='hecke_ring_index',
+            label='Coefficient ring index*',
+            knowl='cmf.coefficient_ring',
+            example='1',
+            example_span='e.g. 1, 2-4')
+
+        hecke_ring_generator_nbound = TextBox(
+            name='hecke_ring_generator_nbound',
+            label='Coefficient ring gens.',
+            knowl='cmf.hecke_ring_generators',
+            example='20',
+            example_span='e.g. 7, 1-10')
+
+        analytic_rank= TextBox(
+            name='analytic_rank',
+            label='Analytic rank',
+            knowl='cmf.analytic_rank',
+            example='1',
+            example_span='e.g. 1, 2-4')
+
+        projective_image = TextBox(
+            name='projective_image',
+            label='Projective image',
+            knowl='cmf.projective_image',
+            example='D15',
+            example_span='wt. 1 only')
+
+        projective_image_type = SelectBox(
+            name='projective_image_type',
+            knowl='cmf.projective_image',
+            label='Projective image type',
+            options=[('', 'unrestricted'),
+                     ('Dn', 'Dn'),
+                     ('A4', 'A4'),
+                     ('S4', 'S4'),
+                     ('A5','A5')],
+            example_span='wt. 1 only')
+
+        count = TextBox(
+            "count",
+            label="Results to display",
+            example=50,
+        )
+
+        wt1only = 
+
+        browse_array = [
+            [level, weight],
+            [level_primes, character],
+            [char_order, char_primitive],
+            [dim, coefficient_field],
+            [analytic_conductor, Nk2],
+            [self_twist, self_twist_discs],
+            [inner_twist_count, is_self_dual],
+            [coefficient_ring_index, hecke_ring_generator_nbound],
+            [analytic_rank, projective_image],
+            [results, projective_image_type]]
+
+        refine_array = [
+            [level, weight, analytic_conductor, Nk2, dim],
+            [level_primes, character, char_primitive, char_order, coefficient_field],
+            [self_twist, self_twist_discs, inner_twist_count, is_self_dual, analytic_rank],
+            [coefficient_ring_index, hecke_ring_generator_nbound, wt1only, projective_image, projective_image_type]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -535,18 +535,21 @@ class HMFSearchArray(SearchArray):
             example='2.0.4.1',
             example_span='either a field label, e.g. 2.0.4.1 for \(\mathbb{Q}(\sqrt{-1})\), or a nickname, e.g. Qsqrt-1',
             example_span_colspan=4)
+
         degree = TextBox(
             name='deg',
             label='Base field degree',
             knowl='nf.degree',
             example='2',
             example_span='e.g. 2, 2..3')
+
         discriminant = TextBox(
             name='disc',
             label='Base field discriminant',
             knowl='nf.discriminant',
             example='5',
             example_span='e.g. 5 or 1-100')
+
         weight = TextBox(
             name='weight',
             label='Weight',
@@ -554,12 +557,14 @@ class HMFSearchArray(SearchArray):
             example='[2,2]',
             example_span='e.g. 2 or [2,2]'
         )
+
         level = TextBox(
             name='level_norm',
             label='Level norm',
             knowl='mf.hilbert.level_norm',
             example='1',
             example_span='e.g. 1 or 1-100')
+
         dimension = TextBox(
             name='dimension',
             label='Dimension',

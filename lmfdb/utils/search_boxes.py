@@ -119,15 +119,16 @@ class TextBox(SearchBox):
             return self.td(self.example_span_colspan) + '<span class="formexample">e.g. %s</span></td>' % self.example_span
 
 class SelectBox(SearchBox):
-    def __init__(self, name=None, label=None, options=[], knowl=None, colspan=(1, 1, 1), width=170, short_width=170, short_label=None, advanced=False, example_col=False, qfield=None):
+    def __init__(self, name=None, label=None, options=[], knowl=None, colspan=(1, 1, 1), width=170, short_width=170, short_label=None, advanced=False, example_col=False, qfield=None, extra=[]):
         SearchBox.__init__(self, name, label, knowl=knowl, colspan=colspan, short_label=short_label, advanced=advanced, example_col=example_col, qfield=qfield)
         self.options = options
         self.width = width
         self.short_width = short_width
         self.example_col = example_col
+        self.extra = extra
 
     def _input(self, info):
-        keys = ['name="%s"' % self.name]
+        keys = self.extra + ['name="%s"' % self.name]
         if self.advanced:
             keys.append('class="advanced"')
         if info is None:
@@ -167,7 +168,7 @@ class SkipBox(TextBox):
         return ""
 
 class TextBoxWithSelect(TextBox):
-    def __init__(self, name, label, select_box, split=True, **kwds):
+    def __init__(self, name, label, select_box, **kwds):
         self.select_box = select_box
         TextBox.__init__(self, name, label, **kwds)
 
@@ -180,6 +181,21 @@ class TextBoxWithSelect(TextBox):
             + self.select_box._input(info)
             + "</div></td>"
         )
+class DoubleSelectBox(SearchBox):
+    def __init__(self, label, select_box1, select_box2, **kwds):
+        self.select_box1 = select_box1
+        self.select_box2 = select_box2
+        SearchBox.__init__(self, label, **kwds)
+
+    def _input(self, info):
+        return (
+            '<div class="float-left">'
+            + self.select_box1._input(info)
+            + self.select_box2._input(info)
+            + '</div>'
+        )
+
+
 
 class SearchArray(UniqueRepresentation):
     def __init__(self, browse_array, refine_array, search_types=[('List', 'List of Results'), ('Random', 'Random Result')]):
