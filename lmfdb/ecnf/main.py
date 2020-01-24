@@ -2,9 +2,11 @@
 # This Blueprint is about Elliptic Curves over Number Fields
 # Authors: Harald Schilly and John Cremona
 
-import ast, re, StringIO, time
-from operator import mul
-from urllib import quote, unquote
+import ast
+import re
+from six import StringIO
+import time
+from six.moves.urllib_parse import quote, unquote
 
 from flask import render_template, request, url_for, redirect, send_file, make_response
 
@@ -37,7 +39,7 @@ def split_full_label(lab):
     try:
         # field 3.1.23.1 uses upper case letters
         isoclass_label = re.search("(CM)?[a-zA-Z]+", data[2]).group()
-        curve_number = re.search("\d+", data[2]).group()  # (a string)
+        curve_number = re.search(r"\d+", data[2]).group()  # (a string)
     except AttributeError:
         flash_error("%s is not a valid elliptic curve label. The last part must contain both an isogeny class label (a sequence of letters), followed by a curve id (an integer), such as a1",  lab)
         raise ValueError
@@ -56,7 +58,7 @@ def split_short_label(lab):
     try:
         # field 3.1.23.1 uses upper case letters
         isoclass_label = re.search("[a-zA-Z]+", data[1]).group()
-        curve_number = re.search("\d+", data[1]).group()  # (a string)
+        curve_number = re.search(r"\d+", data[1]).group()  # (a string)
     except AttributeError:
         flash_error("%s is not a valid elliptic curve label. The last part must contain both an isogeny class label (a sequence of letters), followed by a curve id (an integer), such as a1", lab)
         raise ValueError
@@ -114,8 +116,10 @@ ecnf_credit = "John Cremona, Alyson Deines, Steve Donelly, Paul Gunnells, Warren
 
 def get_bread(*breads):
     bc = [("Elliptic Curves", url_for(".index"))]
-    map(bc.append, breads)
+    for x in breads:
+        bc.append(x)
     return bc
+
 
 def learnmore_list():
     return [('Completeness of the data', url_for(".completeness_page")),
@@ -125,7 +129,8 @@ def learnmore_list():
 
 # Return the learnmore list with the matchstring entry removed
 def learnmore_list_remove(matchstring):
-    return filter(lambda t:t[0].find(matchstring) <0, learnmore_list())
+    return [t for t in learnmore_list() if t[0].find(matchstring) < 0]
+
 
 @ecnf_page.route("/Completeness")
 def completeness_page():
@@ -169,7 +174,7 @@ def labels_page():
 def index():
     #    if 'jump' in request.args:
     #        return show_ecnf1(request.args['label'])
-    if len(request.args) > 0:
+    if request.args:
         return elliptic_curve_search(request.args)
     bread = get_bread()
 
@@ -441,7 +446,7 @@ def download_search(info):
         s = s.replace('[', '[*')
         s = s.replace(']', '*]')
         s += ';'
-    strIO = StringIO.StringIO()
+    strIO = StringIO()
     strIO.write(s)
     strIO.seek(0)
     return send_file(strIO,
@@ -484,7 +489,10 @@ def elliptic_curve_search(info, query):
     parse_ints(info,query,'torsion',name='Torsion order',qfield='torsion_order')
     parse_bracketed_posints(info,query,'torsion_structure',maxlength=2)
     if 'torsion_structure' in query and not 'torsion_order' in query:
-        query['torsion_order'] = reduce(mul,[int(n) for n in query['torsion_structure']],1)
+        t_o = 1
+        for n in query['torsion_structure']:
+            t_o *= int(n)
+        query['torsion_order'] = t_o
     parse_element_of(info,query,field='isodeg',qfield='isogeny_degrees',split_interval=1000)
 
     if 'jinv' in info:
@@ -681,8 +689,8 @@ def ecnf_code_download(**args):
     return response
 
 sorted_code_names = ['field', 'curve', 'is_min', 'cond', 'cond_norm',
-                     'disc', 'disc_norm', 'jinv', 'cm', 'rank', 'ntors',
-                     'gens', 'reg', 'tors', 'torgens', 'localdata']
+                     'disc', 'disc_norm', 'jinv', 'cm', 'rank',
+                     'gens', 'heights', 'reg', 'tors', 'ntors', 'torgens', 'localdata']
 
 code_names = {'field': 'Define the base number field',
               'curve': 'Define the curve',
@@ -696,6 +704,7 @@ code_names = {'field': 'Define the base number field',
               'rank': 'Compute the Mordell-Weil rank',
               'ntors': 'Compute the order of the torsion subgroup',
               'gens': 'Compute the generators (of infinite order)',
+              'heights': 'Compute the heights of the generators (of infinite order)',
               'reg': 'Compute the regulator',
               'tors': 'Compute the torsion subgroup',
               'torgens': 'Compute the generators of the torsion subgroup',
