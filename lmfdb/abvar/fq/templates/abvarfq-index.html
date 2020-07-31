@@ -43,10 +43,10 @@
   <a href="{{ isocls.url }}" title = "{{isocls.reason}}"> {{ isocls.label }} </a>&nbsp;
   {% endfor %}
 </p>
+{% endfor %}
 <p>
   A <a href="?search_type=Counts">table</a> by dimension and base field
 </p>
-{% endfor %}
 
 <h2> Find a specific {{KNOWL('av.isogeny_class',title="isogeny class") }} by {{ KNOWL('av.fq.lmfdb_label',title="label") }} or {{ KNOWL('av.fq.weil_polynomial',"Weil polynomial") }}</h2>
 <form>
