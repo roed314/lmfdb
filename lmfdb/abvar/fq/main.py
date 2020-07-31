@@ -221,8 +221,8 @@ class AbvarSearchArray(SearchArray):
             label="Newton type",
             knowl="av.fq.newton_type",
             options=[("", ""),
-                     ("ord", "Ordinary"),
-                     ("ss", "Supersingular")],
+                     ("ord", "ordinary"),
+                     ("ss", "supersingular")],
             advanced=True,
         )
         angle_rank = TextBox(
@@ -656,20 +656,24 @@ def abelian_variety_count(info, query):
     info["col_label"] = r"Cardinality of base field \(q\)"
     info["url_func"] = url_generator
 
-favorite_isocls_labels = [[
-    ("2.2.a_ad", "Principally polarizable with no Jacobian"),
-    ("2.64.a_abp", "Most isomorphism classes"),
-    ("2.167.a_hi", "Most Jacobians"),
-    ("3.2.ac_c_ad", "Jacobian with non-principally polarizable factor"),
-    ("3.8.ag_bk_aea", "Hyperspecial abelian threefold"),
-    ("4.2.ad_c_a_b", "Jacobian of function field with class number 1"),
-    # It would be good to include this, but we don't currently include the data for this being a Jacobian
-    #("4.3.ab_c_ae_ac", "Ordinary, geometrically simple Jacobian with non-maximal angle rank"),
-    ("4.5.ag_o_au_bj", "Principal polarizability unknown"),
-    ("6.2.a_ac_a_c_a_a", "Twists with different number fields"),
-    ("6.2.ak_cb_ahg_sy_abme_ciq", "Largest twist class"),
-    ("6.2.ag_r_abd_bg_ay_u", "Large endomorphism degree"),
-]]
+favorite_isocls_labels = [
+    [
+        ("2.2.a_ad", "Principally polarizable with no Jacobian"),
+        ("2.64.a_abp", "Most isomorphism classes"),
+        ("2.167.a_hi", "Most Jacobians"),
+        ("3.2.ac_c_ad", "Jacobian with non-principally polarizable factor"),
+        ("3.8.ag_bk_aea", "Hyperspecial abelian threefold")
+    ],
+    [
+        ("4.2.ad_c_a_b", "Jacobian of function field with class number 1"),
+        # It would be good to include this, but we don't currently include the data for this being a Jacobian
+        #("4.3.ab_c_ae_ac", "Ordinary, geometrically simple Jacobian with non-maximal angle rank"),
+        ("4.5.ag_o_au_bj", "Principal polarizability unknown"),
+        ("6.2.a_ac_a_c_a_a", "Twists with different number fields"),
+        ("6.2.ak_cb_ahg_sy_abme_ciq", "Largest twist class"),
+        ("6.2.ag_r_abd_bg_ay_u", "Large endomorphism degree"),
+    ]
+]
 
 def abelian_variety_browse(info):
     info["stats"] = AbvarFqStats()
