@@ -15,7 +15,7 @@ from lmfdb.utils import (
     to_dict, flash_error, integer_options, display_knowl, coeff_to_poly,
     SearchArray, TextBox, TextBoxWithSelect, SkipBox, CheckBox, CheckboxSpacer, YesNoBox,
     parse_ints, parse_string_start, parse_subset, parse_submultiset, parse_bool, parse_bool_unknown,
-    search_wrap, count_wrap, YesNoMaybeBox, CountBox, SubsetBox,
+    search_wrap, count_wrap, YesNoMaybeBox, CountBox, SubsetBox, SelectBox,
 )
 from . import abvarfq_page
 from .search_parsing import parse_newton_polygon, parse_nf_string, parse_galgrp
@@ -214,6 +214,15 @@ class AbvarSearchArray(SearchArray):
             label="$p$-rank deficit",
             knowl="av.fq.p_rank",
             example="2",
+            advanced=True,
+        )
+        newton_type = SelectBox(
+            "newton_type",
+            label="Newton type",
+            knowl="av.fq.newton_type",
+            options=[("", ""),
+                     ("ord", "Ordinary"),
+                     ("ss", "Supersingular")],
             advanced=True,
         )
         angle_rank = TextBox(
@@ -480,7 +489,7 @@ class AbvarSearchArray(SearchArray):
             [g, geom_simple],
             [initial_coefficients, polarizable],
             [p_rank, jacobian],
-            [p_rank_deficit],
+            [p_rank_deficit, newton_type],
             [jac_cnt, hyp_cnt],
             [geom_deg, angle_rank],
             [twist_count, max_twist_degree],
@@ -527,6 +536,10 @@ def common_parse(info, query):
     parse_string_start(info, query, "initial_coefficients", qfield="poly_str", initial_segment=["1"])
     parse_string_start(info, query, "abvar_point_count", qfield="abvar_counts_str", first_field="abvar_count")
     parse_string_start(info, query, "curve_point_count", qfield="curve_counts_str", first_field="curve_count")
+    if info.get("newton_type") == "ord":
+        query["is_ordinary"] = True
+    elif info.get("newton_type") == "ss":
+        query["is_supersingular"] = True
     if info.get("simple_quantifier") in ["subset", "exactly"]:
         parse_subset(info, query, "simple_factors", qfield="simple_distinct", mode=info.get("simple_quantifier"))
     else:
@@ -644,9 +657,16 @@ def abelian_variety_count(info, query):
     info["url_func"] = url_generator
 
 favorite_isocls_labels = [[
+    ("2.2.a_ad", "Principally polarizable with no Jacobian"),
     ("2.64.a_abp", "Most isomorphism classes"),
     ("2.167.a_hi", "Most Jacobians"),
-    ("4.2.ad_c_a_b", "Jacobian of function field with claa number 1"),
+    ("3.2.ac_c_ad", "Jacobian with non-principally polarizable factor"),
+    ("3.8.ag_bk_aea", "Hyperspecial abelian threefold"),
+    ("4.2.ad_c_a_b", "Jacobian of function field with class number 1"),
+    # It would be good to include this, but we don't currently include the data for this being a Jacobian
+    #("4.3.ab_c_ae_ac", "Ordinary, geometrically simple Jacobian with non-maximal angle rank"),
+    ("4.5.ag_o_au_bj", "Principal polarizability unknown"),
+    ("6.2.a_ac_a_c_a_a", "Twists with different number fields"),
     ("6.2.ak_cb_ahg_sy_abme_ciq", "Largest twist class"),
     ("6.2.ag_r_abd_bg_ay_u", "Large endomorphism degree"),
 ]]
@@ -654,6 +674,7 @@ favorite_isocls_labels = [[
 def abelian_variety_browse(info):
     info["stats"] = AbvarFqStats()
     info["q_ranges"] = ["2", "3", "4", "5", "7-16", "17-25", "27-211", "223-1024"]
+    info["pranks"] = ["0", "1", "2", "3", "4", "5", "6"]
     info["iso_list"] = [
         [
             {"label": label, "url": url_for_label(label), "reason": reason}

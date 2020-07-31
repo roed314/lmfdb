@@ -28,6 +28,11 @@
   <a href="?q={{q}}">{{q}}</a>&nbsp;
   {% endfor %}
 </p>
+<p>
+  By {{ KNOWL('av.fq.p_rank', "$p$-rank") }}:
+  {% for pr in info.pranks %}
+  <a href="?p_rank={{pr}}">{{pr}}</a>&nbsp;
+  {% endfor %}
 {% for sublist in info.iso_list %}
 <p>
   {% if loop.index == 1 %}
