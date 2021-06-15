@@ -457,7 +457,7 @@ def render_field_webpage(args):
         loc_alg = ''
         for j in range(npr):
             if ramified_algebras_data[j] is None:
-                loc_alg += '<tr><td>%s</td><td colspan="7">Data not computed</td></tr>\n'%str(ram_primes[j])
+                loc_alg += '<tr><td>$%s$</td><td colspan="7">Data not computed</td></tr>\n'%str(ram_primes[j])
             else:
                 from lmfdb.local_fields.main import show_slope_content
                 primefirstline=True
