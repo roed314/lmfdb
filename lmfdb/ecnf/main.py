@@ -15,12 +15,13 @@ from lmfdb import db
 from lmfdb.backend.encoding import Json
 from lmfdb.utils import (
     to_dict, flash_error,
-    parse_ints, parse_noop, nf_string_to_label, parse_element_of,
-    parse_nf_string, parse_nf_elt, parse_bracketed_posints, parse_bool, parse_floats,
-    SearchArray, TextBox, ExcludeOnlyBox, SelectBox, CountBox, YesNoBox,
-    search_wrap, parse_rational,
-    redirect_no_cache
+    parse_ints, parse_ints_to_list_flash, parse_noop, nf_string_to_label, parse_element_of,
+    parse_nf_string, parse_nf_jinv, parse_bracketed_posints, parse_bool, parse_floats, parse_primes,
+    SearchArray, TextBox, ExcludeOnlyBox, SelectBox, CountBox, YesNoBox, SubsetBox, TextBoxWithSelect,
+    search_wrap, redirect_no_cache
     )
+from lmfdb.utils.search_parsing import search_parser
+
 from lmfdb.utils.interesting import interesting_knowls
 from lmfdb.number_fields.number_field import field_pretty
 from lmfdb.number_fields.web_number_field import nf_display_knowl, WebNumberField
@@ -106,9 +107,6 @@ def get_nf_info(lab):
     return label, pretty
 
 
-ecnf_credit = "John Cremona, Alyson Deines, Steve Donelly, Paul Gunnells, Warren Moore, Haluk Sengun, Andrew Sutherland, John Voight, Dan Yasaki"
-
-
 def get_bread(*breads):
     bc = [("Elliptic curves", url_for(".index"))]
     for x in breads:
@@ -117,8 +115,8 @@ def get_bread(*breads):
 
 
 def learnmore_list():
-    return [('Completeness of the data', url_for(".completeness_page")),
-            ('Source of the data', url_for(".how_computed_page")),
+    return [('Source and acknowledgments', url_for(".how_computed_page")),
+            ('Completeness of the data', url_for(".completeness_page")),
             ('Reliability of the data', url_for(".reliability_page")),
             ('Elliptic curve labels', url_for(".labels_page"))]
 
@@ -132,9 +130,8 @@ def completeness_page():
     t = 'Completeness of elliptic curve data over number fields'
     bread = [('Elliptic curves', url_for("ecnf.index")),
              ('Completeness', '')]
-    credit = 'John Cremona'
-    return render_template("single.html", kid='dq.ecnf.extent',
-                           credit=credit, title=t, bread=bread, learnmore=learnmore_list_remove('Completeness'))
+    return render_template("single.html", kid='rcs.cande.ec',
+                           title=t, bread=bread, learnmore=learnmore_list_remove('Completeness'))
 
 
 @ecnf_page.route("/Source")
@@ -142,27 +139,24 @@ def how_computed_page():
     t = 'Source of elliptic curve data over number fields'
     bread = [('Elliptic curves', url_for("ecnf.index")),
              ('Source', '')]
-    credit = 'John Cremona'
-    return render_template("single.html", kid='dq.ecnf.source',
-                           credit=credit, title=t, bread=bread, learnmore=learnmore_list_remove('Source'))
+    return render_template("double.html", kid='rcs.source.ec', kid2='rcs.ack.ec',
+                           title=t, bread=bread, learnmore=learnmore_list_remove('Source'))
 
 @ecnf_page.route("/Reliability")
 def reliability_page():
     t = 'Reliability of elliptic curve data over number fields'
     bread = [('Elliptic curves', url_for("ecnf.index")),
              ('Source', '')]
-    credit = 'John Cremona'
-    return render_template("single.html", kid='dq.ecnf.reliability',
-                           credit=credit, title=t, bread=bread, learnmore=learnmore_list_remove('Reliability'))
+    return render_template("single.html", kid='rcs.rigor.ec',
+                           title=t, bread=bread, learnmore=learnmore_list_remove('Reliability'))
 
 @ecnf_page.route("/Labels")
 def labels_page():
     t = 'Labels for elliptic curves over number fields'
     bread = [('Elliptic curves', url_for("ecnf.index")),
              ('Labels', '')]
-    credit = 'John Cremona'
     return render_template("single.html", kid='ec.curve_label',
-                           credit=credit, title=t, bread=bread, learnmore=learnmore_list_remove('labels'))
+                           title=t, bread=bread, learnmore=learnmore_list_remove('labels'))
 
 
 @ecnf_page.route("/")
@@ -192,7 +186,7 @@ def index():
                             for nf in rqfs)])
 
     # Imaginary quadratics (sample)
-    iqfs = ['2.0.{}.1'.format(d) for d in [4, 8, 3, 7, 11]]
+    iqfs = ['2.0.{}.1'.format(d) for d in [4, 8, 3, 7, 11, 19, 43, 67, 163]]
     info['fields'].append(['By <a href="{}">imaginary quadratic field</a>'.format(url_for('.statistics_by_signature', d=2, r=0)),
                            ((nf, [url_for('.show_ecnf1', nf=nf), field_pretty(nf)])
                             for nf in iqfs)])
@@ -241,7 +235,6 @@ def interesting():
         url_for_label=url_for_label,
         regex=LABEL_RE, # include so that we don't catch elliptic curves over Q also
         title="Some interesting elliptic curves over number fields",
-        credit=ecnf_credit,
         bread=get_bread("Interesting"),
         learnmore=learnmore_list()
     )
@@ -250,7 +243,7 @@ def interesting():
 def statistics():
     title = "Elliptic curves: statistics"
     bread = get_bread("Statistics")
-    return render_template("display_stats.html", info=ECNF_stats(), credit=ecnf_credit, title=title, bread=bread, learnmore=learnmore_list())
+    return render_template("display_stats.html", info=ECNF_stats(), title=title, bread=bread, learnmore=learnmore_list())
 
 @ecnf_page.route("/<nf>/")
 def show_ecnf1(nf):
@@ -332,7 +325,6 @@ def show_ecnf_isoclass(nf, conductor_label, class_label):
     bread.append((conductor_label, url_for(".show_ecnf_conductor", nf=nf_label, conductor_label=conductor_label)))
     bread.append((class_label, url_for(".show_ecnf_isoclass", nf=nf_label, conductor_label=quote(conductor_label), class_label=class_label)))
     return render_template("ecnf-isoclass.html",
-                           credit=ecnf_credit,
                            title=title,
                            bread=bread,
                            cl=cl,
@@ -371,7 +363,6 @@ def show_ecnf(nf, conductor_label, class_label, number):
     code['show'] = {'magma':'','pari':'','sage':''} # use default show names
     info = {}
     return render_template("ecnf-curve.html",
-                           credit=ecnf_credit,
                            title=title,
                            bread=bread,
                            ec=ec,
@@ -468,6 +459,18 @@ def url_for_label(label):
     nf, cond_label, iso_label, number = split_full_label(label.strip())
     return url_for(".show_ecnf", nf=nf, conductor_label=cond_label, class_label=iso_label, number=number)
 
+def make_cm_query(cm_disc_str):
+    cm_list = parse_ints_to_list_flash(cm_disc_str, "CM discriminant", max_val=None)
+    for d in cm_list:
+        if not ((d < 0) and (d % 4 in [0,1])):
+            raise ValueError("A CM discriminant must be a fundamental discriminant of an imaginary quadratic field.")
+    cm_list += [-el for el in cm_list]
+    return cm_list
+
+@search_parser
+def parse_cm_list(inp, query, qfield):
+    query[qfield] = {'$in': make_cm_query(inp)}
+
 @search_wrap(template="ecnf-search-results.html",
              table=db.ec_nfcurves,
              title='Elliptic curve search results',
@@ -478,8 +481,7 @@ def url_for_label(label):
                        'field_knowl':lambda e: nf_display_knowl(e['field_label'], field_pretty(e['field_label']))},
              url_for_label=url_for_label,
              learnmore=learnmore_list,
-             bread=lambda:[('Elliptic curves', url_for(".index")), ('Search results', '.')],
-             credit=lambda:ecnf_credit)
+             bread=lambda:[('Elliptic curves', url_for(".index")), ('Search results', '.')])
 def elliptic_curve_search(info, query):
     parse_nf_string(info,query,'field',name="base number field",qfield='field_label')
     if query.get('field_label') == '1.1.1.1':
@@ -502,20 +504,7 @@ def elliptic_curve_search(info, query):
     parse_ints(info,query,'class_deg','class_deg')
     parse_ints(info,query,'sha','analytic order of &#1064;')
     parse_floats(info,query,'reg','regulator')
-
-    if 'jinv' in info:
-        if info.get('field','').strip() == '2.2.5.1':
-            info['jinv'] = info['jinv'].replace('phi','a')
-        if info.get('field','').strip() == '2.0.4.1':
-            info['jinv'] = info['jinv'].replace('i','a')
-        if not 'a' in info['jinv'] and not info.get('field'): # rational j-invariant allowed for any field
-            parse_rational(info, query, 'jinv', name='j-invariant')
-            if query.get('jinv'):
-                query['jinv'] = {'$regex': '^' + query['jinv'] + '(,0)*$'} # nf elements like j,0,0,0
-        else: # j-invariant is a number field element
-            parse_nf_elt(info, query, 'jinv', name='j-invariant')
-            if query.get('jinv'):
-                query['jinv'] = ','.join(query['jinv'])
+    parse_nf_jinv(info,query,'jinv','j-invariant',field_label=query.get('field_label'))
 
     if info.get('one') == "yes":
         info['number'] = 1
@@ -535,17 +524,36 @@ def elliptic_curve_search(info, query):
         elif info['include_Q_curves'] == 'only':
             query['q_curve'] = True
 
+    parse_cm_list(info,query,field='cm_disc',qfield='cm',name="CM discriminant")
+
     if 'include_cm' in info:
         if info['include_cm'] == 'PCM':
-            query['cm'] = {'$ne' : 0}
+            tmp = {'$ne' : 0}
+            if 'cm' in query:
+                query['cm'] = {'$and': [tmp, query['cm']]}
+            else:
+                query['cm'] = tmp
         elif info['include_cm'] == 'PCMnoCM':
-            query['cm'] = {'$lt' : 0}
+            tmp = {'$lt' : 0}
+            if 'cm' in query:
+                query['cm'] = {'$and': [tmp, query['cm']]}
+            else:
+                query['cm'] = tmp
         elif info['include_cm'] == 'CM':
-            query['cm'] = {'$gt' : 0}
+            tmp = {'$gt' : 0}
+            if 'cm' in query:
+                query['cm'] = {'$and': [tmp, query['cm']]}
+            else:
+                query['cm'] = tmp
         elif info['include_cm'] == 'noPCM':
-            query['cm'] = 0
+            tmp = 0
+            if 'cm' in query:
+                query['cm'] = {'$and': [tmp, query['cm']]}
+            else:
+                query['cm'] = tmp
 
-    parse_ints(info,query,field='cm_disc',qfield='cm')
+    parse_primes(info, query, 'conductor_norm_factors', name='bad primes',
+             qfield='conductor_norm_factors',mode=info.get('bad_quantifier'))
     info['field_pretty'] = field_pretty
     info['web_ainvs'] = web_ainvs
     parse_ints(info,query,'bf_deg',name='Base field degree',qfield='degree')
@@ -556,11 +564,10 @@ def browse():
     # We could use the dict directly but then could not control the order
     # of the keys (degrees), so we use a list
     info = [[d,['%s,%s'%sig for sig in data[d]]] for d in sorted(data.keys())]
-    credit = 'John Cremona'
     t = 'Elliptic curves over number fields'
     bread = [('Elliptic curves', url_for("ecnf.index")),
              ('Browse', ' ')]
-    return render_template("ecnf-stats.html", info=info, credit=credit, title=t, bread=bread, learnmore=learnmore_list())
+    return render_template("ecnf-stats.html", info=info, title=t, bread=bread, learnmore=learnmore_list())
 
 @ecnf_page.route("/browse/<int:d>/")
 def statistics_by_degree(d):
@@ -586,7 +593,6 @@ def statistics_by_degree(d):
 
     info['summary'] = ECNF_stats().degree_summary(d)
     info['sig_stats'] = [sig_counts(sig) for sig in sigs_by_deg[d]]
-    credit = 'John Cremona'
     if d==2:
         t = 'Elliptic curves over quadratic number fields'
     elif d==3:
@@ -602,7 +608,7 @@ def statistics_by_degree(d):
 
     bread = [('Elliptic curves', url_for("ecnf.index")),
               ('Degree %s' % d,' ')]
-    return render_template("ecnf-by-degree.html", info=info, credit=credit, title=t, bread=bread, learnmore=learnmore_list())
+    return render_template("ecnf-by-degree.html", info=info, title=t, bread=bread, learnmore=learnmore_list())
 
 @ecnf_page.route("/browse/<int:d>/<int:r>/")
 def statistics_by_signature(d,r):
@@ -631,7 +637,6 @@ def statistics_by_signature(d,r):
         return [f,counts_by_field[f]]
 
     info['sig_stats'] = [field_counts(f) for f in fields_by_sig[sig]]
-    credit = 'John Cremona'
     if info['sig'] == '2,0':
         t = 'Elliptic curves over real quadratic number fields'
     elif info['sig'] == '0,1':
@@ -651,7 +656,7 @@ def statistics_by_signature(d,r):
     bread = [('Elliptic curves', url_for("ecnf.index")),
               ('Degree %s' % d,url_for("ecnf.statistics_by_degree", d=d)),
               ('Signature (%s)' % info['sig'],' ')]
-    return render_template("ecnf-by-signature.html", info=info, credit=credit, title=t, bread=bread, learnmore=learnmore_list())
+    return render_template("ecnf-by-signature.html", info=info, title=t, bread=bread, learnmore=learnmore_list())
 
 @ecnf_page.route("/download_all/<nf>/<conductor_label>/<class_label>/<number>")
 def download_ECNF_all(nf,conductor_label,class_label,number):
@@ -800,6 +805,14 @@ class ECNFSearchArray(SearchArray):
             label="Regulator*",
             knowl="ec.regulator",
             example="8.4-9.1")
+        bad_quant = SubsetBox(
+            name="bad_quantifier")
+        bad_primes = TextBoxWithSelect(
+            name="conductor_norm_factors",
+            label="Bad primes",
+            knowl="ec.reduction_type",
+            example="5,13",
+            select_box=bad_quant)
         isodeg = TextBox(
             name="isodeg",
             label="Cyclic isogeny degree",
@@ -838,12 +851,12 @@ class ECNFSearchArray(SearchArray):
             [class_size, class_deg],
             [semistable, potential_good_reduction],
             [jinv],
-            [count]
+            [count, bad_primes]
             ]
 
         self.refine_array = [
             [field, conductor_norm, rank, torsion, cm_disc],
             [bf_deg, include_base_change, include_Q_curves, torsion_structure, include_cm],
             [sha, isodeg, class_size, semistable, jinv],
-            [regulator, one, class_deg, potential_good_reduction],
+            [regulator, one, class_deg, potential_good_reduction, bad_primes],
             ]

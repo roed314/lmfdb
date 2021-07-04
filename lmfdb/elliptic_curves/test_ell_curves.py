@@ -65,6 +65,12 @@ class EllCurveTest(LmfdbTest):
     def test_j_search(self):
         L = self.tc.get('/EllipticCurve/Q/?start=0&conductor=&jinv=2000&rank=&torsion=&torsion_structure=&sha=&optimal=&surj_primes=&surj_quantifier=include&nonsurj_primes=&count=100')
         assert '41616.bi2' in L.get_data(as_text=True)
+        L = self.tc.get('/EllipticCurve/Q/?jinv=0,1728')
+        t = L.get_data(as_text=True)
+        assert '27.a3' in t and '32.a3' in t and '11.a3' not in t
+        L = self.tc.get('/EllipticCurve/Q/?jinv=~0,1728&count=100')
+        t = L.get_data(as_text=True)
+        assert '27.a3' not in t and '32.a3' not in t and '11.a3' in t
 
     def test_jbad_search(self):
         L = self.tc.get('/EllipticCurve/Q/?start=0&conductor=&jinv=2.3&rank=&torsion=&torsion_structure=&sha=&optimal=&surj_primes=&surj_quantifier=include&nonsurj_primes=&count=100')
@@ -131,7 +137,7 @@ class EllCurveTest(LmfdbTest):
         Test for factorization of large discriminants
         """
         L = self.tc.get('/EllipticCurve/Q/26569/a/1')
-        assert r'\(-1 \cdot 163^{9} \)' in L.get_data(as_text=True)
+        assert r'-1 \cdot 163^{9}' in L.get_data(as_text=True)
 
     def test_torsion_growth(self):
         """
@@ -149,11 +155,18 @@ class EllCurveTest(LmfdbTest):
         # has a different Gamma-optimal curve in its labelling than all others.
         L = self.tc.get('/EllipticCurve/Q/990/i/')
         row = '\n'.join([
-          '<td class="center">[1, -1, 1, -1568, -4669]</td>',
-          '<td align="center">[6]</td>',
-          '<td align="center">',
-          '1728</td>',
-          '<td>', r'  \(\Gamma_0(N)\)-optimal'
+            '<td class="center"><a href="/EllipticCurve/Q/990h3/">990h3</a></td>',
+            r'<td class="center">\([1, -1, 1, -1568, -4669]\)</td>',
+            r'<td class="center">\(15781142246787/8722841600\)</td>',
+            r'<td class="center">\(235516723200\)</td>',
+            r'<td align="center">\([6]\)</td>',
+            r'<td align="center">',
+            r'\(1728\)</td>',
+            r'<td align="center">',
+            r'\(0.87260\)',
+            r'</td>',
+            r'<td>',
+            r'  \(\Gamma_0(N)\)-optimal</td>'
         ])
         self.assertTrue(row in L.get_data(as_text=True),
                         "990.i appears to have the wrong optimal curve.")

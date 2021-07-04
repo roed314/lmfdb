@@ -35,8 +35,6 @@ ST_LABEL_SHORT_RE = r'^\d+\.\d+\.[A-Z]+\.\d+\.\d+$'
 ST_LABEL_NAME_RE = r'^\d+\.\d+\.[a-zA-Z0-9\{\}\(\)\[\]\_\,]+'
 INFINITY = -1
 
-credit_string = 'Francesc Fité, Kiran Kedlaya, and Andrew Sutherland'
-
 # use a list and a dictionary (for pretty printing) so that we can control the display order (switch to ordered dictionary once everyone is on python 3.1)
 st0_list = (
     'SO(1)', 'SO(2)', 'SO(3)', 'SO(4)', 'SO(5)', 'SO(6)',
@@ -325,8 +323,8 @@ def parse_component_group(inp, query, qfield):
 ###############################################################################
 
 def learnmore_list():
-    return [('Completeness of the data', url_for('.completeness_page')),
-            ('Source of the data', url_for('.source_page')),
+    return [('Source and acknowledgments', url_for('.source_page')),
+            ('Completeness of the data', url_for('.completeness_page')),
             ('Reliability of the data', url_for('.reliability_page')),
             ('Sato-Tate group labels', url_for('.labels_page'))]
 
@@ -361,7 +359,7 @@ def index():
                      ('st0_dict', st0_dict)]:
         info[key] = val
     title = 'Sato-Tate groups'
-    return render_template('st_browse.html', info=info, credit=credit_string, title=title, learnmore=learnmore_list(), bread=get_bread())
+    return render_template('st_browse.html', info=info, title=title, learnmore=learnmore_list(), bread=get_bread())
 
 @st_page.route('/random')
 @redirect_no_cache
@@ -377,7 +375,6 @@ def interesting():
         url_for_label=lambda label: url_for('.by_label', label=label),
         title=r"Some interesting Sato-Tate groups",
         bread=get_bread("Interesting"),
-        credit=credit_string,
         learnmore=learnmore_list()
     )
 
@@ -385,7 +382,7 @@ def interesting():
 def statistics():
     title = "Sato-Tate groups: statistics"
     bread = get_bread("Statistics")
-    return render_template("display_stats.html", info=STStats(), credit=credit_string, title=title, bread=bread, learnmore=learnmore_list())
+    return render_template("display_stats.html", info=STStats(), title=title, bread=bread, learnmore=learnmore_list())
 
 @st_page.route('/<label>')
 def by_label(label):
@@ -450,7 +447,6 @@ def search(info):
         return redirect(url_for('.by_label', label=info['label']), 301)
     search_type = info.get("search_type", info.get("hst", "List"))
     template_kwds = {'bread':get_bread("Search results"),
-                     'credit':credit_string,
                      'learnmore':learnmore_list()}
     title = 'Sato-Tate group search results'
     err_title = 'Sato-Tate group search input error'
@@ -561,7 +557,7 @@ def search(info):
     # Now lookup other (rational) ST groups in database
     if nres != INFINITY:
         start2 = start - nres if start > nres else 0
-        proj = ['label','weight','degree','real_dimension','identity_component','name','pretty','components','component_group','trace_zero_density','moments']
+        proj = ['label','weight','degree','real_dimension','identity_component','name','pretty','components','component_group','trace_zero_density','second_trace_moment', 'fourth_trace_moment', 'first_a2_moment']
         try:
             res = db.gps_st.search(query, proj, limit=max(count - len(results), 0), offset=start2, info=info)
         except QueryCanceledError as err:
@@ -574,7 +570,6 @@ def search(info):
             for v in res:
                 v['identity_component'] = st0_pretty(v['identity_component'])
                 v['component_group'] = sg_pretty(v['component_group'])
-                v['trace_moments'] = trace_moments(v['moments'])
                 results.append(v)
     else:
         info['number'] = 'infinity'
@@ -624,9 +619,15 @@ def mu_info(n):
     rec['moments'] = [['x'] + [ r'\mathrm{E}[x^{%d}]'%m for m in range(13)]]
     rec['moments'] += [['a_1'] + ['1' if m % n == 0  else '0' for m in range(13)]]
     rec['trace_moments'] = trace_moments(rec['moments'])
+    rec['second_trace_moment'] = 1 if n <= 2 else 0
+    rec['fourth_trace_moment'] = 1 if n <= 2 else 0
     rational_traces = [1] if n%2 else [1,-1]
     rec['counts'] = [['a_1', [[t,1] for t in rational_traces]]]
-    rec['probabilities'] = [[r'\mathrm{Pr}[a_1=%d]=\frac{1}{%d}'%(m,n) for m in rational_traces]]
+    if n > 1:
+        T = [['$\\mathrm{Pr}[a_1=%s]=\\frac{1}{%s}$'%(m,n) for m in rational_traces]]
+    else:
+        T = [['$\\mathrm{Pr}[a_1=1]=1$']]
+    rec['probabilities'] = "<table><tr>" + "<tr></tr>".join(["<td>" + "<td></td".join(r) + "</td>" for r in T]) + "</tr></table>"
     return rec
 
 def mu_portrait(n):
@@ -819,7 +820,6 @@ def render_by_label(label):
                 info['simplex'] = [s[0:2],s[2:5],s[5:9],s[9:14],s[14:20]]
             info['simplex_header'] = [r"\left(\mathrm{E}\left[a_1^{e_1}a_2^{e_2}\right]:\sum ie_i=%d\right)\colon"%(2*d+2) for d in range(len(info['simplex']))]
         elif data['degree'] == 6:
-            info['simplex_header'] = [r"\left(\mathrm{E}\left[a_1^{e_1}a_2^{e_2}a_3^{e_3}\right]:\sum ie_i=%d\right)\colon"%(2*d+2) for d in range(len(data['simplex']))]
             s = data['simplex']
             if len(s) >= 56:
                 info['simplex'] = [s[0:2],s[2:6],s[6:13],s[13:23],s[23:37],s[37:51],s[51:56]]
@@ -827,7 +827,7 @@ def render_by_label(label):
                 info['simplex'] = [s[0:2],s[2:6],s[6:13],s[13:23],s[23:37]]
             elif len(s) >= 23:
                 info['simplex'] = [s[0:2],s[2:6],s[6:13],s[13:23]]
-            info['simplex_header'] = [r"\left(\mathrm{E}\left[a_1^{e_1}a_2^{e_2}\right]:\sum ie_i=%d\right)\colon"%(2*d+2) for d in range(len(info['simplex']))]
+            info['simplex_header'] = [r"\left(\mathrm{E}\left[a_1^{e_1}a_2^{e_2}a_3^{e_3}\right]:\sum ie_i=%d\right)\colon"%(2*d+2) for d in range(len(info['simplex']))]
             if len(s) >= 56:
                 info['simplex_header'][-1] = ""
     if data.get('character_matrix'):
@@ -841,19 +841,19 @@ def render_by_label(label):
         z = data['zvector']
         if data['degree'] == 4:
             if sum(z) == 0:
-                s = r"<p>$\mathrm{Pr}[a_i=n]=0$ for $i=1,2$ and $n\in\mathbb{Z}$.</p>."
+                s = r"<p>$\mathrm{Pr}[a_i=n]=0$ for $i=1,2$ and $n\in\mathbb{Z}$.</p>"
             else:
                 s = "<table>"
-                s += '<tr><th></th><th>$-$</th><th>$a_2\\in\\mathbb{Z}$</th><th>' + '</th><th>'.join(["$a_2=%s$" % (i) for i in range(-1,3)]) + '</th></tr>'
-                s += '<tr><th>$-$</th><td align="center">$1$</td><td align="center">$%s$</td><td align="center">' % (sum(z[1:5])/n)
-                s += '</td><td align="center">'.join(["$%s$" % (z[1+i]/n) for i in range(4)]) + '</td></tr>'
-                s += '<tr><th>$a_1=0$</td><td align="center">$%s$</td><td align="center">$%s$</td><td align="center">' % (z[0]/n,sum(z[5:9])/n)
-                s += '</td><td align="center">'.join(["$%s$" % (z[5+i]/n) for i in range(4)]) + "</td></tr>"
+                s += '<tr><th></th><th>$-$</th><th>$a_2\\in\\mathbb{Z}$</th><th>' + '</th><th>'.join(["$a_2=%s$" % (i) for i in range(-2,3)]) + '</th></tr>'
+                s += '<tr><th>$-$</th><td align="center">$1$</td><td align="center">$%s$</td><td align="center">' % (sum(z[1:6])/n)
+                s += '</td><td align="center">'.join(["$%s$" % (z[1+i]/n) for i in range(5)]) + '</td></tr>'
+                s += '<tr><th>$a_1=0$</td><td align="center">$%s$</td><td align="center">$%s$</td><td align="center">' % (z[0]/n,sum(z[6:11])/n)
+                s += '</td><td align="center">'.join(["$%s$" % (z[6+i]/n) for i in range(5)]) + "</td></tr>"
                 s += "</table>"
             info['probabilities'] = s
         elif data['degree'] == 6:
             if sum(z) == 0:
-                s = r"<p>$\mathrm{Pr}[a_i=n]=0$ for $i=1,2,3$ and $n\in\mathbb{Z}$.</p>."
+                s = r"<p>$\mathrm{Pr}[a_i=n]=0$ for $i=1,2,3$ and $n\in\mathbb{Z}$.</p>"
             else:
                 s = "<table>"
                 s += '<tr><th></th><th>$-$</th><th>$a_2\\in\\mathbb{Z}$</th><th>' + '</th><th>'.join(["$a_2=%s$" % (i) for i in range(-1,4)]) + '</th></tr>'
@@ -896,40 +896,39 @@ def render_st_group(info, portrait=None):
     title = r'Sato-Tate group \(' + info['pretty'] + r'\) of weight %d'% info['weight'] + ' and degree %d'% info['degree']
     return render_template('st_display.html',
                            properties=prop,
-                           credit=credit_string,
                            info=info,
                            bread=bread,
                            learnmore=learnmore_list(),
                            title=title,
                            KNOWL_ID='st_group.%s'%(info['label']))
 
+@st_page.route('/Source')
+def source_page():
+    t = 'Source and acknowledgments for Sato-Tate group data'
+    bread = get_bread("Source")
+    return render_template('double.html', kid='rcs.source.st_group', kid2='rcs.ack.st_group',
+                           title=t, bread=bread, learnmore=learnmore_list_remove('Source'))
+
 @st_page.route('/Completeness')
 def completeness_page():
     t = 'Completeness of Sato-Tate group data'
     bread = get_bread("Completeness")
     return render_template('single.html', kid='rcs.cande.st_group',
-                           credit=credit_string, title=t, bread=bread, learnmore=learnmore_list_remove('Completeness'))
-
-@st_page.route('/Source')
-def source_page():
-    t = 'Source of Sato-Tate group data'
-    bread = get_bread("Source")
-    return render_template('single.html', kid='rcs.source.st_group',
-                           credit=credit_string, title=t, bread=bread, learnmore=learnmore_list_remove('Source'))
+                           title=t, bread=bread, learnmore=learnmore_list_remove('Completeness'))
 
 @st_page.route('/Reliability')
 def reliability_page():
     t = 'Reliability of Sato-Tate group data'
     bread = get_bread("Reliability")
     return render_template('single.html', kid='rcs.rigor.st_group',
-                           credit=credit_string, title=t, bread=bread, learnmore=learnmore_list_remove('Reliability'))
+                           title=t, bread=bread, learnmore=learnmore_list_remove('Reliability'))
 
 @st_page.route('/Labels')
 def labels_page():
     t = 'Labels for Sato-Tate groups'
     bread = get_bread("Labels")
     return render_template('single.html', kid='st_group.label',
-                           credit=credit_string, title=t, bread=bread, learnmore=learnmore_list_remove('labels'))
+                           title=t, bread=bread, learnmore=learnmore_list_remove('labels'))
 
 class STSearchArray(SearchArray):
     noun = "group"
@@ -981,17 +980,17 @@ class STSearchArray(SearchArray):
         second_trace_moment = TextBox(
             name="second_trace_moment",
             label="Second trace moment",
-            knowl="st_group.moments",
+            knowl="st_group.second_trace_moment",
             example="8")
         fourth_trace_moment = TextBox(
             name="fourth_trace_moment",
             label="Fourth trace moment",
-            knowl="st_group.moments",
+            knowl="st_group.fourth_trace_moment",
             example="96")
         first_a2_moment = TextBox(
             name="first_a2_moment",
             label="First $a_2$ moment",
-            knowl="st_group.moments",
+            knowl="st_group.first_a2_moment",
             example="4")
         maximal = YesNoBox(
             name="maximal",
