@@ -979,9 +979,10 @@ def web_latex_poly(coeffs, var='x', superscript=True, bigint_cutoff=20,  bigint_
         s += varpow
     s += r"\)"
     if s.startswith(plus):
-        return r"\(" + make_bigint(s[len(plus):], bigint_cutoff)
+        res =  r"\(" + make_bigint(s[len(plus):], bigint_cutoff)
     else:
-        return r"\(-" + make_bigint(s[len(minus):], bigint_cutoff)
+        res = r"\(-" + make_bigint(s[len(minus):], bigint_cutoff)
+    return raw_typeset(PolynomialRing(ZZ, var.lstrip("\\"))(coeffs), res, text_area_threshold=100)
 
 # make latex matrix from list of lists
 def list_to_latex_matrix(li):
@@ -1328,7 +1329,7 @@ def add_space_if_positive(texified_pol):
 
 raw_count = 0
 
-def raw_typeset(raw, tset='', extra=''):
+def raw_typeset(raw, tset='', extra='', text_area_threshold=150):
     r"""
     Return a span with typeset material which will toggle to raw material 
     when an icon is clicked on.
@@ -1350,7 +1351,9 @@ def raw_typeset(raw, tset='', extra=''):
     raw_count += 1
     if not tset:
         tset = r'\({}\)'.format(latex(raw))
-    srcloc = url_for('static', filename='images/t2r.png') 
+    srcloc = url_for('static', filename='images/t2r.png')
+    if len(str(raw)) > text_area_threshold:
+        raw = escape('<textarea readonly="" rows="1" cols="80" style="line-height: 1; height: 13px"; >{}</textarea>'.format(raw))
     out = '<span class="tset-container"><span class="tset-raw" id="tset-raw-{}" raw="{}" israw="0" ondblclick="ondouble({})">{}</span>'.format(raw_count, raw, raw_count, tset)
     out += extra
     out += '&nbsp;&nbsp;<span onclick="iconrawtset({})"><img alt="Toggle raw display" src="{}" class="tset-icon" id="tset-raw-icon-{}" style="position:relative;top: 2px"></span></span>'.format(raw_count, srcloc, raw_count)
