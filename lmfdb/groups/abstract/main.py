@@ -26,10 +26,10 @@ from lmfdb.groups.abstract.web_groups import(
     group_names_pretty, group_pretty_image)
 from lmfdb.number_fields.web_number_field import formatfield
 
-credit_string = "Michael Bush, Lewis Combes, Tim Dokchitser, John Jones, Kiran Kedlaya, Jen Paulhus, David Roberts,  David Roe, Manami Roy, Sam Schiavone, and Andrew Sutherland"
+#credit_string = "Michael Bush, Lewis Combes, Tim Dokchitser, John Jones, Kiran Kedlaya, Jen Paulhus, David Roberts,  David Roe, Manami Roy, Sam Schiavone, and Andrew Sutherland"
 
 abstract_group_label_regex = re.compile(r'^(\d+)\.(([a-z]+)|(\d+))$')
-abstract_subgroup_label_regex = re.compile(r'^(\d+)\.(\d+)\.(\d+)\.(\d+)\.\d+$')
+abstract_subgroup_label_regex = re.compile(r'^(\d+)\.([a-z0-9]+)\.(\d+)\.[a-z]+(\d+)\.[a-z]+\d+$')
 #order_stats_regex = re.compile(r'^(\d+)(\^(\d+))?(,(\d+)\^(\d+))*')
 
 ngroups = None
@@ -133,7 +133,7 @@ def create_boolean_string(gp, short_string=False):
 
             if gp.perfect:
                 strng+= " and " + perfect_str
-    else:           
+    else:
 
     #nilpotent implies supersolvable for finite groups
     #supersolvable imples monomial for finite groups
@@ -427,7 +427,7 @@ def sub_diagram(label):
     info = {'dojs': diagram_js(gp,layers), 'w': w, 'h': h}
     return render_template("diagram_page.html", 
         info=info,
-        title="Rational character table for %s" % label,
+        title="Subgroup diagram for %s" % label,
         bread=get_bread([("Subgroup diagram", " ")]),
         learnmore=learnmore_list())
 
@@ -467,7 +467,7 @@ def group_download(info):
              #          "st_group_link": lambda v: st_link_by_name(1,4,v.pop('st_group'))},
              bread=lambda:get_bread([('Search Results', '')]),
              learnmore=learnmore_list,
-             credit=lambda:credit_string,
+           #  credit=lambda:credit_string,
              url_for_label=url_for_label)
 def group_search(info, query):
     info['group_url'] = get_url
@@ -519,8 +519,9 @@ def group_search(info, query):
                          'subgroup', 'ambient', 'quotient',
                          'subgroup_tex', 'ambient_tex', 'quotient_tex'],
              bread=lambda:get_bread([('Search Results', '')]),
-             learnmore=learnmore_list,
-             credit=lambda:credit_string)
+             learnmore=learnmore_list)
+
+
 def subgroup_search(info, query):
     info['group_url'] = get_url
     info['subgroup_url'] = get_sub_url
@@ -757,15 +758,17 @@ def render_abstract_subgroup(label):
 def make_knowl(title, knowlid):
     return '<a title="%s" knowl="%s">%s</a>'%(title, knowlid, title)
 
-@abstract_page.route("/subinfo/<label>")
-def shortsubinfo(label):
+@abstract_page.route("/subinfo/<ambient>/<short_label>")
+def shortsubinfo(ambient, short_label):
+    label = "%s.%s" % (ambient, short_label)
     if not subgroup_label_is_valid(label):
         # Should only come from code, so return nothing if label is bad
         return ''
     wsg = WebAbstractSubgroup(label)
     # helper function
     def subinfo_getsub(title, knowlid, lab):
-        h = WebAbstractSubgroup(lab)
+        full_lab = "%s.%s" % (ambient, lab)
+        h = WebAbstractSubgroup(full_lab)
         prop = make_knowl(title, knowlid)
         return '<tr><td>%s<td>%s\n' % (
             prop, h.make_span())
@@ -812,7 +815,7 @@ def completeness_page():
 def labels_page():
     t = 'Labels for abstract groups'
     bread = get_bread("Labels")
-    return render_template("single.html", kid='rcs.label.groups.abstract',
+    return render_template("single.html", kid='group.label',
                            learnmore=learnmore_list_remove('label'), 
                            title=t, bread=bread)
 
@@ -932,8 +935,8 @@ class GroupsSearchArray(SearchArray):
             name="exponent",
             label="Exponent",
             knowl="group.exponent",
-            example="2, 4, 6",
-            example_span="list of integers?")
+            example="2, 3, 7",
+            example_span="2, or list of integers like 2, 3, 7")
         nilpclass = TextBox(
             name="nilpotency_class",
             label="Nilpotency class",
