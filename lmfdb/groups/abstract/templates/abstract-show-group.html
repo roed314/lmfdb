@@ -57,7 +57,6 @@
 <tr><td>Automorphism Group:</td><td>${{gp.show_aut_group()}}$</td></tr>
     <tr><td>Outer Automorphisms:</td><td>${{gp.show_outer_group()}}$</td></tr>
     <tr><td>Minimal degree of permutation representation:</td><td>{{gp.transitive_degree}}</td></tr>
-    <tr><td>Schur multiplier:</td><td><a href="{{url_for('.by_abelian_label', label=gp.schur_multiplier_label())}}">${{gp.schur_multiplier_text()}}$</a></td><tr>
   </table>
 </p>
 
@@ -82,8 +81,8 @@
              </tr>
          </tbody>
       </table>
-     {% endif %}   
-<br>     
+     {% endif %}
+<br>
 {% if gp.irrep_stats is defined %}
    <table class="ntdata">
  <thead>
@@ -99,7 +98,7 @@
              </tr>
          </tbody>
       </table>
-     {% endif %} 
+     {% endif %}
 
 
 <h2>Constructions</h2>
@@ -137,7 +136,23 @@
     {% endfor %}
   </tr>
   {% endif %}
+  <tr><td>Rank:</td><td>{{gp.rank}}</td></tr>
+  <tr><td>Eulerian function:</td><td>{{gp.eulerian_function}}</td></tr>
 </table>
+
+
+
+<h2>Homology</h2>
+<p>
+  <table>
+    <tr><td>Abelian quotient:</td><td>${{gp.abelian_quot()}}$</td></tr>
+    <tr><td>Smith invariants:</td><td>{{gp.smith_abelian_invariants}}</td></tr>
+    <tr><td>Commutator count:</td><td>{{gp.commutator_count}}</td></tr>
+    <tr><td>Schur multiplier:</td><td><a href="{{url_for('.by_abelian_label', label=gp.schur_multiplier_label())}}">${{gp.schur_multiplier_text()}}$</a></td><tr>
+
+  </table>
+</p>
+
 
 <h2> Subgroups </h2>
 
@@ -185,16 +200,16 @@
 </table>
 
 
-{#		
- <table>		
-   {% for layer in gp.subgroup_layers[0] %}		
-   <tr>		
-     {% for subgp in layer %}		
-     <td><span class="{{subgp.spanclass()}}" data-sgid="{{subgp.counter}}">${{subgp.subgroup_tex}}$</span></td>		
-     {% endfor %}		
-   </tr>		
-   {% endfor %}		
- </table>		
+{#
+ <table>
+   {% for layer in gp.subgroup_layers[0] %}
+   <tr>
+     {% for subgp in layer %}
+     <td><span class="{{subgp.spanclass()}}" data-sgid="{{subgp.counter}}">${{subgp.subgroup_tex}}$</span></td>
+     {% endfor %}
+   </tr>
+   {% endfor %}
+ </table>
 #}
 
 {# An invisible span to get the select color in the diagram into the DOM #}
