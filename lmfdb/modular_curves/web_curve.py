@@ -208,7 +208,7 @@ class WebModCurve(WebObj):
             friends.append(("Modular form " + self.newforms[0], url_for_mf_label(self.newforms[0])))
             if self.genus == 1:
                 s = self.newforms[0].split(".")
-                label = s[0] + "." + s[2]
+                label = s[0] + "." + s[3]
                 friends.append(("Isogeny class " + label, url_for("ec.by_ec_label", label=label)))
             if self.genus == 2:
                 g2c_url = db.lfunc_instances.lucky({'Lhash':str(self.trace_hash), 'type' : 'G2Q'}, 'url')
