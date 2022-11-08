@@ -187,7 +187,7 @@ modcurve_columns = SearchColumns([
     MathCol("index", "modcurve.index", "Index", default=True),
     MathCol("genus", "modcurve.genus", "Genus", default=True),
     ProcessedCol("rank", "modcurve.rank", "Rank", lambda r: "" if r is None else r, default=lambda info: info.get("rank") or info.get("genus_minus_rank"), align="center", mathmode=True),
-    ProcessedCol("gonality_bounds", "modcurve.gonality", "$K$-gonality", lambda b: r'$%s$'%(b[0]) if b[0] == b[1] else r'$%s \le \gamma \le %s$'%(b[0],b[1]), align="center", default=True),
+    ProcessedCol("gonality_bounds", "modcurve.gonality", "$\Q$-gonality", lambda b: r'$%s$'%(b[0]) if b[0] == b[1] else r'$%s \le \gamma \le %s$'%(b[0],b[1]), align="center", default=True),
     MathCol("cusps", "modcurve.cusps", "Cusps", default=True),
     MathCol("rational_cusps", "modcurve.cusps", r"$\Q$-cusps", default=True),
     ProcessedCol("cm_discriminants", "modcurve.cm_discriminants", "CM points", lambda d: r"$\textsf{yes}$" if d else r"$\textsf{no}$", align="center", default=True),
@@ -195,7 +195,6 @@ modcurve_columns = SearchColumns([
     CheckCol("simple", "modcurve.simple", "Simple"),
     CheckCol("squarefree", "av.squarefree", "Squarefree"),
     CheckCol("contains_negative_one", "modcurve.contains_negative_one", "Contains -1", short_title="contains -1"),
-    CheckCol("plane_model", "ag.plane_model", "Model"),
     ProcessedCol("dims", "modcurve.decomposition", "Decomposition", formatted_dims, align="center"),
 ])
 
@@ -350,7 +349,7 @@ class ModCurveSearchArray(SearchArray):
         gonality = TextBoxWithSelect(
             name="gonality",
             knowl="modcurve.gonality",
-            label="$K$-gonality",
+            label="$\Q$-gonality",
             example="2",
             example_span="2, 3-6",
             select_box=gonality_quantifier,
@@ -751,13 +750,14 @@ class ModCurve_download(Downloader):
         s += "conductor := %s;\n" % rec['conductor']
         s += "bad_primes := %s;\n" % rec['bad_primes']
         s += "// Make plane model, if computed;\n"
-        if rec["plane_model"]:
-            s += "QQ := Rationals();\n"
-            if rec["plane_model"] == "P1":
-                s += "XX := Curve(ProjectiveSpace(QQ,1));\n"
-            else:
-                s += "R<X,Y,Z> := PolynomialRing(QQ,3);\n"
-                s += "XX := Curve(ProjectiveSpace(R), %s);\n" % rec['plane_model']
+        ## This should get updated to take the new
+        #if rec["plane_model"]:
+        #    s += "QQ := Rationals();\n"
+        #    if rec["plane_model"] == "P1":
+        #        s += "XX := Curve(ProjectiveSpace(QQ,1));\n"
+        #    else:
+        #        s += "R<X,Y,Z> := PolynomialRing(QQ,3);\n"
+        #        s += "XX := Curve(ProjectiveSpace(R), %s);\n" % rec['plane_model']
         s += "// Genus\n"
         s += "g := %s;\n" % rec['genus']
         s += "// Rank\n"
