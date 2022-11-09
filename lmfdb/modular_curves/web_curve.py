@@ -91,6 +91,15 @@ def canonicalize_name(name):
         cname = cname.upper()
     return cname
 
+def canonicalize_family_name(name):
+    n = len(name)
+    cname = "X" + name[1:].lower().replace("_", "").replace("^", "")
+    cname = cname.split("(")[0]
+    cname = cname + "(N)"
+    if cname[:4] == "Xs4(":
+        cname = cname.upper()
+    return cname
+
 def name_to_latex(name):
     if not name:
         return ""
@@ -106,6 +115,24 @@ def name_to_latex(name):
     if name[1] != "(":
         name = "X_" + name[1:]
     return f"${name}$"
+
+def name_to_family_latex(name):
+    if not name:
+        return ""
+    name = canonicalize_family_name(name)
+    if "+" in name:
+        name = name.replace("+", "^+")
+    if "ns" in name:
+        name = name.replace("ns", "{\mathrm{ns}}")
+    elif "sp" in name:
+        name = name.replace("sp", "{\mathrm{sp}}")
+    elif "S4" in name:
+        name = name.replace("S4", "{S_4}")
+    if name[1] != "(":
+        name = "X_" + name[1:]
+    return f"${name}$"
+
+
 
 def factored_conductor(conductor):
     return "\\cdot".join(f"{p}{showexp(e, wrap=False)}" for (p, e) in conductor) if conductor else "1"
@@ -218,7 +245,7 @@ class WebModCurve(WebObj):
             friends.append(("Modular form " + self.newforms[0], url_for_mf_label(self.newforms[0])))
             if self.genus == 1:
                 s = self.newforms[0].split(".")
-                label = s[0] + "." + s[3]
+                label = s[0] + "." + s[2]
                 friends.append(("Isogeny class " + label, url_for("ec.by_ec_label", label=label)))
             if self.genus == 2:
                 g2c_url = db.lfunc_instances.lucky({'Lhash':str(self.trace_hash), 'type' : 'G2Q'}, 'url')
@@ -254,6 +281,15 @@ class WebModCurve(WebObj):
             return f"Modular curve {name_to_latex(self.name)}"
         else:
             return f"Modular curve {self.label}"
+        
+    @lazy_attribute
+    def latex_name(self):
+        return name_to_latex(self.name)
+    
+    @lazy_attribute
+    def latex_family_name(self):
+        return name_to_family_latex(self.name)
+        
 
     @lazy_attribute
     def formatted_dims(self):
