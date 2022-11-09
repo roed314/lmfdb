@@ -75,7 +75,7 @@
 </table>
 {% endif %}
 
-{% set models = curve.models_to_display %}
+{% set models = curve.formatted_models %}
 {% if models or (curve.genus == 0 and not curve.pointless) or curve.has_more_models %}
 <h2> {{ KNOWL('ag.model', 'Models') }} </h2>
 {% if models %}
@@ -225,7 +225,9 @@
       <th>{{ KNOWL('modcurve.modular_cover','Degree') }}</th>
       <th>{{ KNOWL('modcurve.genus','Genus') }}</th>
       <th>{{ KNOWL('modcurve.rank','Rank') }}</th>
+      {% if curve.genus > 0 %}
       <th>{{ KNOWL('modcurve.modular_cover','Kernel decomposition') }}</th>
+      {% endif %}
     </tr>
   </thead>
   <tbody>
@@ -239,7 +241,7 @@
     <td align="center">${{ rank }}$</td>
     {% if genus > 0 %}
     <td><span>{{ kernel if kernel else "$\\text{dimension zero}$" | safe }}</span></td>
-    {% else %}
+    {% elif curve.genus > 0 %}
     <td><span>{{ "$\\text{full Jacobian}$" }}</span></td>
     {% endif %}
   </tr>
@@ -259,7 +261,9 @@
       <th>{{ KNOWL('modcurve.modular_cover','Degree') }}</th>
       <th>{{ KNOWL('modcurve.genus','Genus') }}</th>
       <th>{{ KNOWL('modcurve.rank','Rank') }}</th>
+      {% if curve.genus > 0 %}
       <th>{{ KNOWL('modcurve.modular_cover','Kernel decomposition') }}</th>
+      {% endif %}
     </tr>
   </thead>
   <tbody>
@@ -273,7 +277,7 @@
     <td align="center">${{ rank }}$</td>
     {% if genus > 0 %}
     <td><span>{{ kernel if kernel else "$\\text{dimension zero}$" | safe }}</span></td>
-    {% else %}
+    {% elif curve.genus > 0 %}
     <td><span>{{ "$\\text{full Jacobian}$" }}</span></td>
     {% endif %}
   </tr>
