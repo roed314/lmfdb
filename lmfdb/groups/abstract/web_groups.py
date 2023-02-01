@@ -1488,6 +1488,7 @@ class WebAbstractGroup(WebObj):
                 return self.representation_line("PC")
             return "data not computed"
             #raise NotImplementedError
+
         def sort_key(typ):
             if typ == self.element_repr_type:
                 return -1
