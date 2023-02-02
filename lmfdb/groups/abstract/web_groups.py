@@ -739,7 +739,7 @@ class WebAbstractGroup(WebObj):
                 (r"$\card{G^{\mathrm{ab}}}$", web_latex(self.Gab_order_factor()))])
             cent_order_factored = self.cent_order_factor()
             if cent_order_factored:
-                props.extend([(r"$\card{Z(G)}$", 
+                props.extend([(r"$\card{Z(G)}$",
                     web_latex(cent_order_factored) if cent_order_factored else nc)])
             try:
                 props.extend([
@@ -1493,6 +1493,7 @@ class WebAbstractGroup(WebObj):
                 return self.representation_line("PC")
             return "data not computed"
             #raise NotImplementedError
+
         def sort_key(typ):
             if typ == self.element_repr_type:
                 return -1
