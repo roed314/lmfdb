@@ -1235,10 +1235,11 @@ def display_url_cache(label, cache):
 def get_sub_url(label):
     return url_for(".by_subgroup_label", label=label)
 
-#This function takes in a char label and returns url for its group's char table HIGHLIGHTING ONE
-def get_cchar_url(label):
+#This function takes in a char label+counter and returns a link for its group's char table HIGHLIGHTING ONE
+def get_cchar_link(label, counter):
     gplabel = ".".join(label.split(".")[:2])
-    return url_for(".char_table", label=gplabel, char_highlight=label)
+    url = url_for(".char_table", label=gplabel, char_highlight=label, char_highlight_i=counter)
+    return f'<a href="{url}">{label}</a>'
 
 #This function takes in a char label and returns url for its rational group's char table HIGHLIGHTING ONE
 def get_qchar_url(label):
@@ -1590,7 +1591,7 @@ def char_to_sub(short_label, group, as_latex=None):
 
 
 complex_char_columns = SearchColumns([
-    LinkCol("label", "group.label_complex_group_char", "Label", get_cchar_url),
+    MultiProcessedCol("label", "group.label_complex_group_char", "Label", ["label", "counter"], get_cchar_link, download_col="label"),
     MathCol("dim", "group.representation.complex_char_deg", "Degree"),
     ProcessedCol("indicator", "group.representation.type", "Type", print_type),
     CheckCol("faithful", "group.representation.faithful", "Faithful"),
