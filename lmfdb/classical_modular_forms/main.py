@@ -526,6 +526,27 @@ def mf_data(label):
     bread = get_bread(other=[(label, url_for_label(label)), ("Data", " ")])
     return datapage(labels, tables, title=title, bread=bread, label_cols=label_cols)
 
+@cmf.route("/mf_hecke_cc/")
+def mf_hecke_cc():
+    info = to_dict(request.args)
+    t = 'Complex Hecke eigenvalues'
+    bread = [("Datasets", url_for("datasets")), ("mf_hecke_cc", " ")]
+    if 'Fetch' in info:
+        errors = []
+        if 'N' in info and 'k' in info:
+            N, k = info["N"].strip(), info["k"].strip()
+            if N.isdigit() and k.isdigit():
+                N, k = int(N), int(k)
+                if db.mf_hecke_cc.exists({"level":N, "weight":k}):
+                    filepath = os.path.expand(f"~/data/mf_hecke_cc/{k}/{N}")
+                    return send_file_from_beta(filepath, as_attachment=True)
+                else:
+                    errors.append(f"The database does not contain any newforms with weight {k} and level {N}")
+            else:
+                errors.append(f"The weight ({k}) and level ({N}) must be positive integers")
+        else:
+            errors.append("You must specify both weight and level")
+    return render_template("mf_hecke_cc.html")
 
 @cmf.route("/<level>/")
 def by_url_level(level):
