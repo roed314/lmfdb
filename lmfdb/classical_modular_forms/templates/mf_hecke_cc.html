@@ -3,7 +3,14 @@
 {% block content %}
 
 <p>
-  This dataset contains normalized complex Hecke eigenvalues $a_n$ and {{KNOWL('cmf.satake_angles', 'Satake angles')}} $\theta_p$ for
+  This dataset contains normalized complex Hecke eigenvalues $a_n/n^{(k-1)/2}$ and {{KNOWL('cmf.satake_angles', 'Satake angles')}} $\theta_p$ for {{KNOWL('cmf.embedding', 'embedded newforms')}}.
 </p>
+
+<p>
+  The dataset currently contains 14,417,694 embedded newforms (arising from 281,965 {{KNOWL('cmf.newform', 'newforms')}}), with odd {{KNOWL('cmf.weight', 'weight')}} ranging from $1$ to $181$ and even weight ranging from $2$ to $316$.  The {{KNOWL('cmf.level', 'level')}} varies by weight
+
+<h2>File and data format</h2>
+
+Each file contains data for all 
 
 {% endblock %}
