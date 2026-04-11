@@ -1361,4 +1361,3 @@ class NFSearchArray(SearchArray):
             [class_group, class_number, regulator, subfield, field_is],
             [narrow_class_group, narrow_class_number, relative_class_number, cm_field, completion],
             [monogenic, index, inessentialprimes, is_minimal_sibling, unit_signature_rank]]
-
