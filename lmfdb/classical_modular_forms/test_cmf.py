@@ -575,7 +575,8 @@ class CmfTest(LmfdbTest):
         self.check_args('/ModularForm/GL2/Q/holomorphic/mf_hecke_cc/', ['14,417,694', 'N.k.a.x.n.i'])
         self.check_args('/ModularForm/GL2/Q/holomorphic/mf_hecke_cc/?k=12', ['Select a', '269'])
         self.check_args('/ModularForm/GL2/Q/holomorphic/mf_hecke_cc/?N=12', ['Select a', '57'])
-        self.check_args('/ModularForm/GL2/Q/holomorphic/mf_hecke_cc/?N=11&k=2', '11.2.a.a.1.1') # Downloads from beta
+        path = '/ModularForm/GL2/Q/holomorphic/mf_hecke_cc/?N=11&k=2'
+        self.check_external(path, path, '11.2.a.a.1.1') # Downloads from beta
 
     def test_underlying_data(self):
         data = self.tc.get('/ModularForm/GL2/Q/holomorphic/data/13.2').get_data(as_text=True)
