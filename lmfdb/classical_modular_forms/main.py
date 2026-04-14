@@ -52,7 +52,8 @@ def learnmore_list():
     return [('Source and acknowledgments', url_for(".how_computed_page")),
             ('Completeness of the data', url_for(".completeness_page")),
             ('Reliability of the data', url_for(".reliability_page")),
-            ('Classical modular form labels', url_for(".labels_page"))]
+            ('Classical modular form labels', url_for(".labels_page")),
+            ('Complex Hecke eigenvalues', url_for(".mf_hecke_cc"))]
 
 
 def learnmore_list_add(learnmore_label, learnmore_url):
@@ -426,7 +427,7 @@ def render_embedded_newform_webpage(newform_label, embedding_label):
     except ValueError as err:
         return abort(404, err.args)
     info['CC_m'] = [m]
-    info['CC_n'] = [0, 1000]
+    info['CC_n'] = [0, 100]
     # errs.extend(parse_prec(info))
     errs = parse_prec(info)
     newform.setup_cc_data(info)
@@ -531,6 +532,7 @@ def mf_hecke_cc():
     info = to_dict(request.args)
     t = 'Complex Hecke eigenvalues'
     bread = get_bread()
+    learnmore = learnmore_list_remove("Hecke")
     errors = []
     if 'label' in info:
         if LABEL_RE.match(info['label']) or EMB_LABEL_RE.match(info['label']):
@@ -551,14 +553,14 @@ def mf_hecke_cc():
                 Nlist = db.mf_hecke_cc.distinct("level", {"weight": k})
                 if Nlist:
                     Nlist = [Nlist[i:i+10] for i in range(0, len(Nlist), 10)]
-                    return render_template("mf_hecke_cc.html", k=k, Nlist=Nlist, title=t, bread=bread)
+                    return render_template("mf_hecke_cc.html", k=k, Nlist=Nlist, title=t, bread=bread, learnmore=learnmore)
                 else:
                     errors.append(f"The database does not contain any newforms with weight {k}")
             elif 'k' not in info:
                 klist = db.mf_hecke_cc.distinct("weight", {"level": N})
                 if klist:
                     klist = [klist[i:i+10] for i in range(0, len(klist), 10)]
-                    return render_template("mf_hecke_cc.html", N=N, klist=klist, title=t, bread=bread)
+                    return render_template("mf_hecke_cc.html", N=N, klist=klist, title=t, bread=bread, learnmore=learnmore)
                 else:
                     errors.append(f"The database does not contain any newforms with level {N}")
             elif db.mf_hecke_cc.exists({"level":N, "weight":k}):
@@ -577,7 +579,7 @@ def mf_hecke_cc():
     if errors:
         for err in errors:
             flash_error(err)
-    return render_template("mf_hecke_cc.html", title=t, bread=bread)
+    return render_template("mf_hecke_cc.html", title=t, bread=bread, learnmore=learnmore)
 
 @cmf.route("/<level>/")
 def by_url_level(level):
