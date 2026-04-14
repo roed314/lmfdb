@@ -15,7 +15,7 @@ from lmfdb.utils import (
     flash_error, to_dict, comma, display_knowl, bigint_knowl, num2letters,
     SearchArray, TextBox, TextBoxNoEg, SelectBox, TextBoxWithSelect, YesNoBox,
     DoubleSelectBox, RowSpacer, HiddenBox, SearchButtonWithSelect,
-    SubsetBox, ParityMod, CountBox,
+    SubsetBox, ParityMod, CountBox, send_file_from_beta,
     StatsDisplay, proportioners, totaler, integer_divisors,
     redirect_no_cache)
 from psycodict.utils import range_formatter
@@ -25,7 +25,7 @@ from lmfdb.utils.search_columns import SearchColumns, LinkCol, MathCol, FloatCol
 from lmfdb.api import datapage
 from lmfdb.classical_modular_forms import cmf
 from lmfdb.classical_modular_forms.web_newform import (
-    WebNewform, convert_newformlabel_from_conrey, LABEL_RE,
+    WebNewform, convert_newformlabel_from_conrey, LABEL_RE, EMB_LABEL_RE,
     quad_field_knowl, cyc_display, field_display_gen)
 from lmfdb.classical_modular_forms.web_space import (
     WebNewformSpace, WebGamma1Space, DimGrid, convert_spacelabel_from_conrey,
@@ -531,21 +531,52 @@ def mf_hecke_cc():
     info = to_dict(request.args)
     t = 'Complex Hecke eigenvalues'
     bread = [("Datasets", url_for("datasets")), ("mf_hecke_cc", " ")]
-    if 'Fetch' in info:
-        errors = []
-        if 'N' in info and 'k' in info:
-            N, k = info["N"].strip(), info["k"].strip()
-            if N.isdigit() and k.isdigit():
-                N, k = int(N), int(k)
-                if db.mf_hecke_cc.exists({"level":N, "weight":k}):
-                    filepath = os.path.expand(f"~/data/mf_hecke_cc/{k}/{N}")
-                    return send_file_from_beta(filepath, as_attachment=True)
-                else:
-                    errors.append(f"The database does not contain any newforms with weight {k} and level {N}")
-            else:
-                errors.append(f"The weight ({k}) and level ({N}) must be positive integers")
+    errors = []
+    if 'label' in info:
+        if LABEL_RE.match(info['label']) or EMB_LABEL_RE.match(info['label']):
+            N, k, _ = info['label'].split(".", 2)
+            if 'N' in info and info['N'].strip() != N:
+                errors.append("Level does not match label")
+            if 'k' in info and info['k'].strip() != k:
+                errors.append("Weight does not match label")
+            info['N'] = N
+            info['k'] = k
         else:
-            errors.append("You must specify both weight and level")
+            errors.append("Invalid label format")
+    if ('N' in info or 'k' in info) and not errors:
+        N, k = info.get('N','0').strip(), info.get('k', '0').strip()
+        if N.isdigit() and k.isdigit():
+            N, k = int(N), int(k)
+            if 'N' not in info:
+                Nlist = db.mf_hecke_cc.distinct("level", {"weight": k})
+                if Nlist:
+                    Nlist = [Nlist[i:i+10] for i in range(0, len(Nlist), 10)]
+                    return render_template("mf_hecke_cc.html", k=k, Nlist=Nlist)
+                else:
+                    errors.append(f"The database does not contain any newforms with weight {k}")
+            elif 'k' not in info:
+                klist = db.mf_hecke_cc.distinct("weight", {"level": N})
+                if klist:
+                    klist = [klist[i:i+10] for i in range(0, len(klist), 10)]
+                    return render_template("mf_hecke_cc.html", N=N, klist=klist)
+                else:
+                    errors.append(f"The database does not contain any newforms with level {N}")
+            elif db.mf_hecke_cc.exists({"level":N, "weight":k}):
+                if 'label' in info:
+                    label = info['label']
+                    def line_matcher(i, line):
+                        return i < 2 or line.startswith(label)
+                else:
+                    line_matcher = None
+                filepath = os.path.expand(f"~/data/mf_hecke_cc/{k}/{N}")
+                return send_file_from_beta(filepath, line_matcher=line_matcher, as_attachment=True)
+            else:
+                errors.append(f"The database does not contain any newforms with weight {k} and level {N}")
+        else:
+            errors.append(f"The weight ({k}) and level ({N}) must be positive integers")
+    if errors:
+        for err in errors:
+            flash_error(err)
     return render_template("mf_hecke_cc.html")
 
 @cmf.route("/<level>/")
