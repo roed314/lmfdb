@@ -568,7 +568,7 @@ def mf_hecke_cc():
                         return i < 2 or line.startswith(label)
                 else:
                     line_matcher = None
-                filepath = os.path.expand(f"~/data/mf_hecke_cc/{k}/{N}")
+                filepath = f"/home/lmfdb/data/mf_hecke_cc/{k}/{N}"
                 return send_file_from_beta(filepath, line_matcher=line_matcher, as_attachment=True)
             else:
                 errors.append(f"The database does not contain any newforms with weight {k} and level {N}")

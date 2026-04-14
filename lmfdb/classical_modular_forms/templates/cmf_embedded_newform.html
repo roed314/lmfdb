@@ -6,7 +6,7 @@
 
 <p>For each \(n\) we display the coefficients of the \(q\)-expansion \(a_n\), the
 {{ KNOWL('cmf.satake_parameters',title='Satake parameters') }} \(\alpha_p\),
-and the Satake angles \(\theta_p = \textrm{Arg}(\alpha_p)\).</p>
+and the Satake angles \(\theta_p = \textrm{Arg}(\alpha_p)\).  You can download additional coefficients <a href="{{url_for('cmf.mf_hecke_cc', label=newform.label+'.'+newform.embedding_label)}}">here</a>.</p>
 
 
 <script>
@@ -27,9 +27,9 @@ and the Satake angles \(\theta_p = \textrm{Arg}(\alpha_p)\).</p>
   }
 </script>
 
-{% set class_n = [50, 250, 1000] %}
-{% set subsets = [('primes', 'only \(a_p\)','\(a_p\) with \(p\)'), ('all', '\(a_n\) instead','\(a_n\) with \(n\)')]%}
-{% set default_class = [50,'primes'] %}
+{% set class_n = [100] %}
+{% set subsets = [('primes', 'only \(a_p\)','\(a_p\) with \(p\)'), ('all', 'all \(a_n\)','\(a_n\) with \(n\)')]%}
+{% set default_class = [100,'primes'] %}
 {% macro render_display_options(href) %}
 <div>
   {% for s in subsets %}
@@ -37,12 +37,6 @@ and the Satake angles \(\theta_p = \textrm{Arg}(\alpha_p)\).</p>
     {% if s[0] == default_class[1] %}
       {% set extra = '' %}
     {% endif %}
-    <span class="noptions {{s[0]}} {{extra}}">
-    Display {{s[2]}} up to:
-    {% for k in class_n %}
-    <a onclick="show_primes_all_n('{{k}}','{{s[0]}}'); return true" href="{{href}}">{{k}}</a>
-    {% endfor %} {# for k in class_n #}
-    </span>
     {% for n in class_n %}
       {% set extra = 'nodisplay' %}
       {% if n == default_class[0] and s[0] == default_class[1] %}
@@ -53,7 +47,7 @@ and the Satake angles \(\theta_p = \textrm{Arg}(\alpha_p)\).</p>
       <span class="{{s[0]}} {{n|string}} {{extra}}" >
       {% for ns in subsets %}
        {% if ns != s %}
-       (<a onclick="show_primes_all_n('{{n}}','{{ns[0]}}'); return true" href="{{href}}">See {{ns[1]}}</a>)
+       Currently showing {{s[1]}}; <a onclick="show_primes_all_n('{{n}}','{{ns[0]}}'); return true" href="{{href}}">display {{ns[1]}}</a>
        {% endif %}
       {% endfor %} {# for ns in subsets #}
       </span>

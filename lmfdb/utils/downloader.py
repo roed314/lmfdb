@@ -35,7 +35,7 @@ def send_file_from_beta(filepath, line_matcher, **kwds):
     urlparts = urlparse(request.url)
     if urlparts.netloc != "beta.lmfdb.org":
         replaced = urlparts._replace(netloc="beta.lmfdb.org", scheme="https")
-        return redirect(urlunparse(replaced, code=301))
+        return redirect(urlunparse(replaced), code=301)
     if line_matcher is None:
         return send_file(filepath, **kwds)
     bIO = BytesIO()
