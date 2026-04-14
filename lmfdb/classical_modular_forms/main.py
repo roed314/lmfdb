@@ -530,7 +530,7 @@ def mf_data(label):
 def mf_hecke_cc():
     info = to_dict(request.args)
     t = 'Complex Hecke eigenvalues'
-    bread = [("Datasets", url_for("datasets")), ("mf_hecke_cc", " ")]
+    bread = get_bread()
     errors = []
     if 'label' in info:
         if LABEL_RE.match(info['label']) or EMB_LABEL_RE.match(info['label']):
@@ -551,14 +551,14 @@ def mf_hecke_cc():
                 Nlist = db.mf_hecke_cc.distinct("level", {"weight": k})
                 if Nlist:
                     Nlist = [Nlist[i:i+10] for i in range(0, len(Nlist), 10)]
-                    return render_template("mf_hecke_cc.html", k=k, Nlist=Nlist)
+                    return render_template("mf_hecke_cc.html", k=k, Nlist=Nlist, title=t, bread=bread)
                 else:
                     errors.append(f"The database does not contain any newforms with weight {k}")
             elif 'k' not in info:
                 klist = db.mf_hecke_cc.distinct("weight", {"level": N})
                 if klist:
                     klist = [klist[i:i+10] for i in range(0, len(klist), 10)]
-                    return render_template("mf_hecke_cc.html", N=N, klist=klist)
+                    return render_template("mf_hecke_cc.html", N=N, klist=klist, title=t, bread=bread)
                 else:
                     errors.append(f"The database does not contain any newforms with level {N}")
             elif db.mf_hecke_cc.exists({"level":N, "weight":k}):
@@ -577,7 +577,7 @@ def mf_hecke_cc():
     if errors:
         for err in errors:
             flash_error(err)
-    return render_template("mf_hecke_cc.html")
+    return render_template("mf_hecke_cc.html", title=t, bread=bread)
 
 @cmf.route("/<level>/")
 def by_url_level(level):

@@ -3,11 +3,11 @@
 {% block content %}
 
 <p>
-  This dataset contains normalized complex Hecke eigenvalues $a_n/n^{(k-1)/2}$ and {{KNOWL('cmf.satake_angles', 'Satake angles')}} $\theta_p$ for {{KNOWL('cmf.embedding', 'embedded newforms')}}.
+  This dataset contains normalized complex {{KNOWL('cmf.hecke_operator', 'Hecke eigenvalues')}} $a_n/n^{(k-1)/2}$ and {{KNOWL('cmf.satake_angles', 'Satake angles')}} $\theta_p$ for {{KNOWL('cmf.embedding', 'embedded newforms')}}.
 </p>
 
 <p>
-  The dataset currently contains 14,417,694 embedded newforms (arising from 281,965 {{KNOWL('cmf.newform', 'newforms')}}), with odd {{KNOWL('cmf.weight', 'weight')}} ranging from $1$ to $181$ and even weight ranging from $2$ to $316$.  The stored {{KNOWL('cmf.level', 'levels')}} vary by weight, and for each newform we store either 2000, 4000, or 6000 Hecke eigenvalues.
+  The dataset currently contains 14,417,694 embedded newforms (arising from 281,965 {{KNOWL('cmf.newform', 'newforms')}}), with odd {{KNOWL('cmf.weight', 'weight')}} ranging from $1$ to $181$ and even weight ranging from $2$ to $316$.  The stored {{KNOWL('cmf.level', 'levels')}} vary by weight, and for each newform we store either 2000, 4000, or 6000 Hecke eigenvalues (and corresponding Satake angles).  The main difference between this dataset and the internal <tt>mf_hecke_cc</tt> table within the LMFDB is that this dataset stores more eigenvalues (the internal table only has $n$ up to 100).
 </p>
 
 <h3>File and data format</h3>
