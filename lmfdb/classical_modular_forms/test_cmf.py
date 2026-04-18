@@ -561,7 +561,7 @@ class CmfTest(LmfdbTest):
         page = self.tc.get('/ModularForm/GL2/Q/holomorphic/13/2/e/a/?m=1-2&n=3.5&prec=6&format=embed')
         assert "must be an integer, range of integers or comma separated list of integers" in page.get_data(as_text=True)
         page = self.tc.get('/ModularForm/GL2/Q/holomorphic/419/3/h/a/?n=2-10&m=1-20000&prec=6&format=embed', follow_redirects=True)
-        assert "Web interface only supports 100 embeddings at a time.  Use download link to get more (may take some time)." in page.get_data(as_text=True)
+        assert "Web interface only supports 1000 embeddings at a time.  Use download link to get more (may take some time)." in page.get_data(as_text=True)
         page = self.tc.get('/ModularForm/GL2/Q/holomorphic/419/3/h/a/?n=3.14&format=embed', follow_redirects=True)
         assert "must be an integer, range of integers or comma separated list of integers" in page.get_data(as_text=True)
         page = self.tc.get('/ModularForm/GL2/Q/holomorphic/99/2/p/a/?n=2-10&m=1-20&prec=16&format=embed')
