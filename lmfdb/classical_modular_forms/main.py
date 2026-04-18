@@ -566,6 +566,7 @@ def mf_hecke_cc():
             elif db.mf_hecke_cc.exists({"level":N, "weight":k}):
                 if 'label' in info:
                     label = info['label']
+
                     def line_matcher(i, line):
                         return i < 2 or line.startswith(label)
                 else:
