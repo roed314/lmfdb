@@ -243,7 +243,7 @@ def parse_n(info, newform, primes_only):
     info['default_nrange'] = '2-%s' % maxp
     nrange = info.get('n', '2-%s' % maxp)
     try:
-        info['CC_n'] = integer_options(nrange, newform.an_cc_bound)
+        info['CC_n'] = integer_options(nrange, 6000)
     except (ValueError, TypeError) as err:
         info['CC_n'] = list(range(2, maxp + 1))
         if err.args and err.args[0] == 'Too many options':
