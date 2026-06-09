@@ -15,7 +15,7 @@ table.reptable td, table.reptable th {
 <h2> {{ KNOWL('gg.invariants', title='Group invariants') }}</h2>
   <div>
     <table>
-      <tr><td>{{KNOWL('group.small_group_label','Abstract group')}}:</td><td>&nbsp;&nbsp;</td><td>{{info.groupid | safe}}</td>
+      <tr><td>{{KNOWL('group.small_group_label','Abstract group')}}:</td><td>&nbsp;&nbsp;</td><td>{{ gp.abstract_knowl | safe}}</td>
         <td>{{place_code('id')}}</td></tr>
       <tr><td>{{KNOWL('group.order','Order')}}:</td><td>&nbsp;&nbsp;</td><td>{{info.ordermsg }}</td>
       <td>{{place_code('order')}}</td></tr>
@@ -59,7 +59,7 @@ table.reptable td, table.reptable th {
   <blockquote>
   {{info.resolve|safe}}
 
-  <p>Resolvents shown for degrees $\leq {{info.wgg.quotient_bound()}}$</p>
+  <p>Resolvents shown for degrees $\leq {{gp.quotient_bound()}}$</p>
   </blockquote>
 
   <h2>{{ KNOWL('gg.subfields', title='Subfields') }}</h2>
@@ -74,6 +74,14 @@ table.reptable td, table.reptable th {
    <blockquote>
       {{info.arith_equiv|safe}}
    </blockquote>
+
+  <h2>{{ KNOWL('gg.nf_statistics', title='Number field statistics') }}</h2>
+
+  <table>
+    <tr><td>{{KNOWL('gg.malle', 'Number field count')}}</td><td>{{ gp.malle_str }}</td></tr>
+    <tr><td>{{KNOWL('gg.malle_status', 'Proven')}}</td><td>{{ gp.malle_status }}</td></tr>
+    <tr><td colspan="2"><a href="{{url_for('.malle', label=info.label)}}">more details</a></td></tr>
+  </table>
 
   <h2>{{ KNOWL('gg.conjugacy_classes', title='Conjugacy classes') }}</h2>
 
@@ -94,12 +102,6 @@ table.reptable td, table.reptable th {
       </tbody>
       </table>
    <p>
-   {{KNOWL('gg.malle_a', "Malle's constant $a(G)$")}}: &nbsp; &nbsp;
-   {% if info.malle_a is not none %}
-   ${{info.malle_a}}$
-   {% else %}
-   not computed
-   {% endif %}
       {% elif cclasses not in info %}
         Conjugacy classes not computed
       {% else %}
@@ -109,7 +111,7 @@ table.reptable td, table.reptable th {
    <p>{{ place_code('ccs') }}</p>
 
    <h2>{{KNOWL('group.complex_character_table', 'Character table')}}</h2>
-      {% if not info.wgg.can_chartable %}
+      {% if not gp.can_chartable %}
         <p>Character table not computed</p>
       {% elif info.chartable %}
         {% include 'character-table.html' %}
@@ -166,12 +168,12 @@ list of indecomposable integral representations:
 {% endif %}
 
 <h2>{{ KNOWL('gg.regular_extension', title='Regular extensions') }}</h2>
-      {% if not info.wgg.regulars %}
+      {% if not gp.regulars %}
         <p>Data not computed</p>
       {% else %}
       <p>
         <table>
-        {% for model in info.wgg.regulars %}
+        {% for model in gp.regulars %}
           <tr><td style="vertical-align: top">$f_{ {{ loop.index }} } =$</td>
               <td> {{ model[0]|safe }}</td></tr>
           <tr><td></td><td> {{ model[1]|safe }}</td></tr>

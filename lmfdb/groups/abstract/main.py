@@ -158,10 +158,10 @@ def ctx_abstract_groups():
 
 def learnmore_list():
     return [
-        ("Source and acknowledgements", url_for(".how_computed_page")),
-        ("Completeness of the data", url_for(".completeness_page")),
-        ("Reliability of the data", url_for(".reliability_page")),
-        ("Abstract  group labeling", url_for(".labels_page")),
+        ("Source and acknowledgements", url_for("abstract.how_computed_page")),
+        ("Completeness of the data", url_for("abstract.completeness_page")),
+        ("Reliability of the data", url_for("abstract.reliability_page")),
+        ("Abstract  group labeling", url_for("abstract.labels_page")),
     ]
 
 

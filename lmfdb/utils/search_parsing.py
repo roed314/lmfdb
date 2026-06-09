@@ -330,16 +330,23 @@ def parse_range(arg, parse_singleton=int, use_dollar_vars=True):
 
 # version above does not produce legal results when there is a comma
 # to deal with $or, we return [key, value]
-def parse_range2(arg, key, parse_singleton=int, parse_endpoint=None, split_minus=True):
+def parse_range2(arg, key, parse_singleton=int, parse_endpoint=None, split_minus=True, flip=False):
     if parse_endpoint is None:
         parse_endpoint = parse_singleton
+    if isinstance(parse_endpoint, tuple):
+        parse_start, parse_end = parse_endpoint
+    else:
+        parse_start, parse_end = parse_endpoint, parse_endpoint
     if isinstance(arg, str):
         arg = arg.replace(" ", "")
-    if isinstance(arg, parse_singleton):
-        return [key, arg]
+    try:
+        if isinstance(arg, parse_singleton):
+            return [key, arg]
+    except TypeError:
+        pass # parse_singleton might be a callable
     if "," in arg:
         tmp = [
-            parse_range2(a, key, parse_singleton, parse_endpoint, split_minus)
+            parse_range2(a, key, parse_singleton, parse_endpoint, split_minus, flip=flip)
             for a in arg.split(",")
         ]
         tmp = [{a[0]: a[1]} for a in tmp]
@@ -354,9 +361,19 @@ def parse_range2(arg, key, parse_singleton=int, parse_endpoint=None, split_minus
         start, end = arg[:ix], arg[stop:]
         q = {}
         if start:
-            q["$gte"] = parse_endpoint(start)
+            if flip:
+                start = parse_start(start)
+                if start is not None:
+                    q["$lte"] = start
+            else:
+                q["$gte"] = parse_start(start)
         if end:
-            q["$lte"] = parse_endpoint(end)
+            if flip:
+                end = parse_end(end)
+                if end is not None:
+                    q["$gte"] = end
+            else:
+                q["$lte"] = parse_end(end)
         return [key, q]
     else:
         return [key, parse_singleton(arg)]
@@ -517,18 +534,41 @@ def parse_rational_to_list(inp, query, qfield):
 
 # see SearchParser.__call__ for actual arguments when calling
 @search_parser(clean_info=True, prep_ranges=True)
-def parse_ints(inp, query, qfield, parse_singleton=int):
+def parse_ints(inp, query, qfield, parse_singleton=int, parse_endpoint=None, flip=False):
     if LIST_RE.match(inp):
-        collapse_ors(parse_range2(inp, qfield, parse_singleton), query)
+        collapse_ors(parse_range2(inp, qfield, parse_singleton, parse_endpoint=parse_endpoint, flip=flip), query)
     elif MULT_PARSE.fullmatch(inp):
         try:
             ast_expression = ast.parse(inp.replace("^", "**"), mode="eval")
             inp = str(int(PowMulNodeVisitor().visit(ast_expression).body))
-            collapse_ors(parse_range2(inp, qfield, parse_singleton), query)
+            collapse_ors(parse_range2(inp, qfield, parse_singleton, flip=flip), query)
         except (TypeError, ValueError, SyntaxError):
             raise SearchParsingError("Unable to evaluate expression.")
     else:
         raise SearchParsingError("It needs to be an integer (such as 25), be a multiplicative expression that parses to an integer (such as 2^2*3), a range of integers (such as 2-10 or 2..10), or a comma-separated list of these (such as 4,9,16 or 4-25, 81-121).")
+
+@search_parser(clean_info=True, prep_ranges=True)
+def parse_intinvs(inp, query, qfield):
+    # Parse value like Malle a(G), which is the inverse of an integer but stored in the database as that integer.  Column should NOT take on negative values.
+    def parse_single(x):
+        try:
+            return int(ZZ(1/QQ(x)))
+        except ZeroDivisionError:
+            return 0
+        except TypeError:
+            return -1 # Invalid value will not match anything
+    def parse_start(x):
+        x = QQ(x)
+        if x > 0:
+            return int((1/x).floor())
+    def parse_end(x):
+        x = QQ(x)
+        if x > 0:
+            return int((1/x).ceil())
+    if LIST_RAT_RE.match(inp):
+        collapse_ors(parse_range2(inp, qfield, parse_single, (parse_start, parse_end), flip=True), query)
+    else:
+        raise SearchParsingError("It needs to be an rational (such as 1/25), a range of rationals (such as 2/11-4/3 or 2..10), or a comma-separated list of these (such as 4,9,16 or 4-25, 81/3-121/2).")
 
 
 # see SearchParser.__call__ for actual arguments when calling
