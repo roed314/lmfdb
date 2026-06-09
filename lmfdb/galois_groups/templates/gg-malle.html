@@ -47,8 +47,8 @@
 {% if perm %}
 <table>
   <tr><td>{{ KNOWL('gg.malle_asymptotic', "Asymptotic known") }}</td><td> {{yesno(gp._malle_status == 2)}} </td></tr>
-  <tr><td>{{ KNOWL('gg.malle_upper', "Upper bound") }}</td><td> ${{ gp.malle_upper }}$ </td></tr>
-  <tr><td>{{ KNOWL('gg.malle_lower', "Lower bound") }}</td><td> ${{ gp.malle_lower }}$ </td></tr>
+  <tr><td>{{ KNOWL('gg.malle_upper', "Upper bound") }}</td><td> {{ gp.malle_upper }} </td></tr>
+  <tr><td>{{ KNOWL('gg.malle_lower', "Lower bound") }}</td><td> {{ gp.malle_lower }} </td></tr>
 </table>
 {# Lower bounds from...
 Regular polynomials

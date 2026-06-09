@@ -229,10 +229,10 @@ class WebGaloisGroup:
             return "not computed"
         b = self._data.get("malle_upper_b")
         if b is None:
-            return r"X^{%s+\epsilon}" % a
+            return r"$X^{%s+\epsilon}$" % a
         if b == 0:
-            return r"cX^{%s}" % a
-        return r"cX^{%s}\log(X)^{%s}" % (a, b)
+            return r"$cX^{%s}$" % a
+        return r"$cX^{%s}\log(X)^{%s}$" % (a, b)
 
     @lazy_attribute
     def malle_lower(self):
@@ -241,10 +241,10 @@ class WebGaloisGroup:
             return "not computed"
         b = self._data.get("malle_lower_b")
         if b is None:
-            return r"X^{%s-\epsilon}" % a
+            return r"$X^{%s-\epsilon}$" % a
         if b == 0:
-            return r"cX^{%s}" % a
-        return r"X^{%s}\log(X)^{%s}" % (a, b)
+            return r"$cX^{%s}$" % a
+        return r"$X^{%s}\log(X)^{%s}$" % (a, b)
 
     def arith_equivalent(self):
         if 'arith_equiv' in self._data:
