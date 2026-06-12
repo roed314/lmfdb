@@ -145,6 +145,10 @@ class WebGaloisGroup:
         return "not computed"
 
     @lazy_attribute
+    def semiconcentrated_cores(self):
+        return self._data.get("semiconcentrated_cores")
+
+    @lazy_attribute
     def malle_str(self):
         a = self.malle_a
         # Should get updated to malle_wang_b

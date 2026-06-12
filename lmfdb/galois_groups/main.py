@@ -714,21 +714,22 @@ class GalSearchArray(SearchArray):
             [t, cyc],
             [order, solv],
             [nilpotency, prim],
-            [arith_equiv, aut], 
-            [gal],
-            [concentrated, semiconcentrated, semiconcentrated_abelian],
-            [concentrated_nilpotent, concentrated_abelian],
-            [malle_a, malle_b, ],
-            [malle_b_status, malle_turkelli_b],
-            [transitivity, malle_wang_b],
-            [count, ]
+            [arith_equiv, aut],
+            [gal, transitivity],
+            [concentrated, semiconcentrated],
+            [concentrated_abelian, semiconcentrated_abelian],
+            [concentrated_nilpotent, malle_a],
+            [malle_b, malle_b_status],
+            [malle_turkelli_b, malle_wang_b],
+            [count]
         ]
 
         self.refine_array = [
             [parity, cyc, solv, prim, arith_equiv],
             [n, t, order, gal, nilpotency],
             [aut, transitivity, concentrated, semiconcentrated, semiconcentrated_abelian],
-            [concentrated_nilpotent, concentrated_abelian, malle_a, malle_b, malle_turkelli_b, malle_wang_b, malle_b_status]
+            [concentrated_nilpotent, concentrated_abelian, malle_a, malle_b, malle_turkelli_b],
+            [malle_wang_b, malle_b_status, malle_status]
         ]
 
 def yesone(s):
