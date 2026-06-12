@@ -166,6 +166,10 @@ class WebGaloisGroup:
         return self._data["malle_b"]
 
     @lazy_attribute
+    def malle_turkelli_b(self):
+        return self._data.get("malle_turkelli_b", "not computed")
+
+    @lazy_attribute
     def malle_wang_b(self):
         return self._data.get("malle_wang_b", "not computed")
 
