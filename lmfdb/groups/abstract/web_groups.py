@@ -2656,6 +2656,14 @@ class WebAbstractGroup(WebObj):
             tex = group_names_pretty(self.central_quotient)
         return f'<a href="{url}">${tex}$</a>, of order {pos_int_and_factor(self.inner_order)}'
 
+    @lazy_attribute
+    def abstract_knowl(self):
+        if self.tex_name is None:
+            name = "Group {self.label}"
+        else:
+            name = f"${self.tex_name}$"
+        return abstract_group_display_knowl(self.label, name)
+
     def perm_degree(self):
         if self.permutation_degree is None:
             return r"not computed"

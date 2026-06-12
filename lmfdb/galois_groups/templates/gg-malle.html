@@ -1,0 +1,84 @@
+{% extends "homepage.html" %}
+
+{% block content %}
+
+{# This currently only works for permutation groups #}
+
+<h2> {{ KNOWL('gg.malle_group', 'Group theoretic invariants') }} </h2>
+
+<table>
+  <tr><td>{{ KNOWL('group.small_group_label', 'Abstract group') }}</td><td> {{ gp.abstract_knowl | safe}}</td></tr>
+  <tr><td>{{ KNOWL('group.permutation_representation', 'Permutation representation') }}</td><td> {{ gp.perm_knowl | safe }} </td></tr>
+  <tr><td>{{ KNOWL('gg.degree', 'Degree') }}</td><td> ${{ gp.n() }}$ </td></tr>
+  <tr><td>{{ KNOWL('group.order', 'Order') }}</td><td> ${{ gp.order() }}$ </td></tr>
+  <tr><td>{{ KNOWL('group.cyclic', 'Cyclic') }}</td><td> {{ yesno(gp.is_cyclic()) }} </td></tr>
+  <tr><td>{{ KNOWL('group.abelian', 'Abelian') }}</td><td> {{ yesno(gp.is_abelian()) }} </td></tr>
+  <tr><td>{{ KNOWL('group.solvable', 'Solvable') }}</td><td> {{ yesno(gp.is_solvable()) }} </td></tr>
+  <tr><td>{{ KNOWL('gg.concentrated', 'Concentrated') }}</td><td> {{yesno(gp.is_concentrated()) }} </td></tr>
+  <tr><td>{{ KNOWL('gg.concentrated', 'Concentrated core') }}</td><td> {{gp.concentrated_core}} </td></tr>
+  <tr><td>{{ KNOWL('gg.semiconcentrated', 'Semiconcentrated') }}</td><td> {{yesno(gp.is_semiconcentrated()) }} </td></tr>
+  <tr><td>{{ KNOWL('gg.semiconcentrated', 'Semiconcentrated core') }}</td><td> {{gp.semiconcentrated_core}} </td></tr>
+  <tr><td>{{ KNOWL('gg.other_representations', 'Low degree siblings') }}</td><td> {{gp.otherrep_list(givebound=False) | safe}}</td></tr>
+</table>
+
+<h2> {{ KNOWL('gg.malle', 'Asymptotic' if gp.malle_proven else 'Conjectured asymptotic') }} </h2>
+
+<p> The {% if not gp.malle_proven %}conjectured {% endif %}count of number fields with this Galois group, of discriminant up to $X$, is asymptotic to</p>
+<p>$c X^a \log(X)^{b-1}$</p>
+
+<table>
+  <tr><td>{{ KNOWL('gg.malle_a', "$a(G)$") }}</td><td> ${{ gp.malle_a }}$ </td></tr>
+  <tr><td>{{ KNOWL('gg.malle_b', "$b(G)$ (corrected)") }}</td><td> {{ gp.malle_wang_b }} </td></tr>
+  <tr><td>{{ KNOWL('gg.malle_b', "$b(G)$ (original)") }}</td><td> {{ gp.malle_b }} </td></tr>
+  <tr><td>{{ KNOWL('gg.malle_c', "$c(G)$") }}</td><td> {{ gp.malle_c }} </td></tr>
+  {# Don't currently display d = LCM(order of minimal index elements) #}
+</table>
+
+{% if gp.malle_proven %}
+
+<h2> {{ KNOWL('gg.malle_proof', 'Proof trace') }} </h2>
+
+<p> TODO: Information on how to prove the asymptotic (either literature references or inductive connection to other groups) </p>
+
+{% else %}
+
+<h2> {{ KNOWL('gg.malle_bounds', 'Known results') }} </h2>
+
+{% if perm %}
+<table>
+  <tr><td>{{ KNOWL('gg.malle_asymptotic', "Asymptotic known") }}</td><td> {{yesno(gp._malle_status == 2)}} </td></tr>
+  <tr><td>{{ KNOWL('gg.malle_upper', "Upper bound") }}</td><td> {{ gp.malle_upper }} </td></tr>
+  <tr><td>{{ KNOWL('gg.malle_lower', "Lower bound") }}</td><td> {{ gp.malle_lower }} </td></tr>
+</table>
+{# Lower bounds from...
+Regular polynomials
+Single fiber in inductive method
+Special methods for A_n and S_n
+#}
+{% else %}
+
+
+{% endif %} {# perm #}
+
+{# For the abstract group; specialize to single variable generating series #}
+
+{% endif %} {# gp.malle_proven #}
+
+{% if not perm %}
+
+{# Ideally, widget to give weights #}
+
+<h2> {{ KNOWL('gg.malle_mds', 'Domain of meromorphic continuation') }} </h2>
+
+<table>
+  {% for ineq in gp.malle_mds_inequalities %}
+  <tr><td>${{ineq}}$</td></tr>
+  {% endfor %}
+</table>
+
+{% endif %}
+
+{% endblock %}
+
+
+

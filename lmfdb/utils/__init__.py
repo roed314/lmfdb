@@ -21,7 +21,7 @@ __all__ = ['request', 'make_response', 'flash', 'url_for', 'render_template',
            'debug', 'flash_error', 'flash_warning', 'flash_info',
            'image_callback', 'encode_plot', 'graph_to_cytoscape_json', 'graph_to_svg',
            'make_graph', 'setup_isogeny_graph', 'GRAPH_LAYOUTS',
-           'parse_ints', 'parse_posints', 'parse_signed_ints', 'parse_floats',
+           'parse_ints', 'parse_intinvs', 'parse_posints', 'parse_signed_ints', 'parse_floats',
            'parse_mod1', 'parse_rational', 'parse_padicfields',
            'parse_rational_to_list', 'parse_inertia', 'parse_group_label_or_order',
            'parse_rats', 'parse_bracketed_posints', 'parse_bracketed_rats', 'parse_bool',
@@ -142,7 +142,7 @@ from .web_display import (
 )
 
 from .search_parsing import (
-    parse_ints, parse_signed_ints, parse_posints,
+    parse_ints, parse_intinvs, parse_signed_ints, parse_posints,
     parse_floats, parse_mod1, parse_rational,
     parse_rational_to_list, parse_padicfields, parse_rats, parse_inertia,
     parse_bracketed_posints, parse_bracketed_rats, parse_bool,

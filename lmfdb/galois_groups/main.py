@@ -10,12 +10,12 @@ from lmfdb import db
 from lmfdb.app import app
 from lmfdb.utils import (
     list_to_latex_matrix, flash_error, comma, to_dict, display_knowl,
-    clean_input, prep_ranges, parse_bool, parse_ints, parse_galgrp,
-    SearchArray, TextBox, TextBoxNoEg, YesNoBox, ParityBox, CountBox,
+    clean_input, prep_ranges, parse_bool, parse_ints, parse_intinvs, parse_galgrp,
+    SearchArray, TextBox, TextBoxNoEg, YesNoBox, ParityBox, SelectBox, CountBox,
     StatsDisplay, totaler, proportioners, prop_int_pretty, Downloader,
     sparse_cyclotomic_to_mathml, search_wrap, redirect_no_cache, CodeSnippet)
 from lmfdb.utils.interesting import interesting_knowls
-from lmfdb.utils.search_columns import SearchColumns, LinkCol, MultiProcessedCol, MathCol, CheckCol, SearchCol
+from lmfdb.utils.search_columns import SearchColumns, LinkCol, ProcessedCol, MultiProcessedCol, MathCol, CheckCol, SearchCol
 from lmfdb.api import datapage
 from lmfdb.number_fields.web_number_field import modules2string
 from lmfdb.galois_groups import galois_groups_page
@@ -129,10 +129,21 @@ class GG_download(Downloader):
     def modify_query(self, info, query):
         _set_show_subs(info)
 
-# For the search order-parsing
-def make_order_key(order):
-    order1 = int(ZZ(order).log(10))
-    return '%03d%s' % (order1,str(order))
+def malle_asymp(status):
+    if status is None or status < 3:
+        return ""
+    return "&#x2713;"
+
+def malle_status_shorten(status):
+    if isinstance(status, str):
+        return status
+    if status is None or status < 2:
+        return ""
+    if status < 5:
+        return "$a$"
+    if status < 6:
+        return "$a,b$"
+    return "$a,b,c$"
 
 gg_columns = SearchColumns([
     LinkCol("label", "gg.label", "Label", url_for_label),
@@ -141,6 +152,13 @@ gg_columns = SearchColumns([
     MathCol("order", "group.order", "Order", align="right"),
     MathCol("parity", "gg.parity", "Parity", align="right"),
     CheckCol("solv", "group.solvable", "Solvable"),
+    CheckCol("concentrated", "gg.concentrated", "Concentrated", default=lambda info: info.get("concentrated")),
+    CheckCol("semiconcentrated", "gg.semiconcentrated", "Semiconcentrated", default=lambda info: info.get("semiconcentrated")),
+    MultiProcessedCol("malle_a", "gg.malle_a", "Malle $a(G)$", ["malle_ainv"], lambda ainv: 0 if ainv == 0 else 1 / ZZ(ainv), default=lambda info: info.get("malle_ainv"), mathmode=True),
+    MathCol("malle_b", "gg.malle_b", "Malle $b(G)$", default=lambda info: info.get("malle_b")), # TODO: Update to malle_wang_b when available
+    MathCol("malle_c", "gg.malle_c", "Malle $c(G)$", default=lambda info: info.get("malle_c")),
+    MultiProcessedCol("malle_asymptotic", "gg.malle_status", "Malle Asymp.", ["malle_status"], malle_asymp, default=lambda info: info.get("malle_status")),
+    ProcessedCol("malle_status", "gg.malle_status", "Malle Known", malle_status_shorten, default=lambda info: info.get("malle_status")),
     MathCol("nilpotency", "group.nilpotent", "Nil. class", short_title="nilpotency class", default=False),
     MathCol("auts", "gg.field_automorphisms", r"$\#\Aut(F/K)$", short_title="field auts"),
     MathCol("transitivity", "gg.transitivity", "Transitivity", short_title="transitivity",default=lambda info: info.get("transitivity")),
@@ -155,7 +173,7 @@ gg_columns = SearchColumns([
                       apply_download=lambda s, b, c: [s, b])
 ],
 
-    db_cols=["bound_siblings", "abstract_label", "label", "name", "n", "order", "parity", "pretty", "siblings", "solv", "subfields", "nilpotency", "num_conj_classes", "auts", "transitivity"])
+    db_cols=["bound_siblings", "abstract_label", "label", "name", "n", "order", "parity", "pretty", "siblings", "solv", "subfields", "nilpotency", "num_conj_classes", "auts", "transitivity", "concentrated", "semiconcentrated", "malle_ainv", "malle_b", "malle_status"]) # TODO: change malle_b to malle_wang_b, add malle_c
 #gg_columns.below_download = r"<p>Results are complete for degrees $\leq 23$.</p>"
 
 def gg_postprocess(res, info, query):
@@ -231,6 +249,11 @@ def galois_group_search(info, query):
     parse_ints(info,query,'nilpotency')
     parse_ints(info,query,'transitivity')
     parse_ints(info,query,'auts')
+    parse_intinvs(info,query,'malle_a', qfield='malle_ainv')
+    parse_ints(info,query,'malle_b') # TODO: Update to malle_wang_b
+    parse_bool(info,query,'concentrated')
+    parse_bool(info,query,'semiconcentrated')
+    parse_ints(info,query,'malle_status')
     parse_galgrp(info, query, qfield=['label','n'], name='Galois group', field='gal')
     for param in ('cyc', 'solv', 'prim'):
         parse_bool(info, query, param, process=int, blank=['0','Any'])
@@ -244,6 +267,8 @@ def galois_group_search(info, query):
 
 
 def yesno(val):
+    if val is None:
+        return 'not computed'
     if val:
         return 'yes'
     return 'no'
@@ -345,8 +370,6 @@ def render_group_webpage(args):
         if len(pretty) > 0:
             prop2.extend([('Group:', pretty)])
             data['pretty_name'] = pretty
-        gp_label = data['abstract_label']
-        data['groupid'] = abstract_group_display_knowl(gp_label, pretty if pretty else gp_label)
         data['name'] = re.sub(r'_(\d+)',r'_{\1}',data['name'])
         data['name'] = re.sub(r'\^(\d+)',r'^{\1}',data['name'])
         data['nilpotency'] = '$%s$' % data['nilpotency']
@@ -354,7 +377,6 @@ def render_group_webpage(args):
         if data['nilpotency'] == '$-1$':
             data['nilpotency'] = ' not nilpotent'
         data['dispv'] = sparse_cyclotomic_to_mathml
-        data['malle_a'] = wgg.malle_a
         downloads = []
         for lang in [("Gap", "gap"), ("Magma", "magma"), ("Oscar", "oscar"), ("SageMath", "sage")]:
             downloads.append(('{} commands'.format(lang[0]), url_for(".gg_code_download", label=label, download_type=lang[1])))
@@ -375,6 +397,47 @@ def render_group_webpage(args):
             downloads=downloads,
             KNOWL_ID="gg.%s" % label,
             learnmore=learnmore_list()+[('Picture description', url_for('.pictures'))])
+
+@galois_groups_page.route('/malle/<label>')
+def malle(label):
+    title = f"Number field counting statistics for {label}"
+    if "T" in label:
+        parent_id, child_id = label.split("T")
+        bread = get_bread([(parent_id, url_for(".index", n=parent_id)), (child_id, url_for(".by_label", label=label)), ("Number field counts", " ")])
+        wgg = WebGaloisGroup(label)
+        if wgg._data is None:
+            flash_error("%s not found in Galois group database", label)
+            return redirect(url_for(".index"))
+        return render_template(
+            "gg-malle.html",
+            title=title,
+            bread=bread,
+            perm=True,
+            gp=wgg,
+            yesno=yesno,
+            learnmore=learnmore_list())
+    elif "." in label:
+        from lmfdb.groups.abstract.main import WebAbstractGroup, learnmore_list as abstract_learnmore
+        gp = WebAbstractGroup(label)
+        if gp.is_null():
+            flash_error("%s not found in group database", label)
+            return redirect(url_for("abstract.index"))
+        bread = [("Groups", url_for("abstract.index")), ("Abstract", url_for("abstract.index")), (label, url_for("abstract.by_label", label=label)), ("Number field counts", " ")]
+        return render_template(
+            "gg-malle.html",
+            title=title,
+            bread=bread,
+            perm=False,
+            gp=gp,
+            yesno=yesno,
+            learnmore=abstract_learnmore())
+    elif label.isdigit():
+        # We might want a custom embed page here eventually,
+        # but for now we just redirect to a search result page with Malle invariants enabled.
+        return redirect(url_for(".index", n=label))
+    else:
+        flash_error("%s not a valid label", label)
+        return redirect(url_for(".index"))
 
 
 sorted_code_names = ['gg', 'id', 'order', 'cyclic', 'abelian', 'solvable', 'nilpotent',
@@ -474,6 +537,7 @@ class GalSearchArray(SearchArray):
     sorts = [("", "degree", ["n", "t"]),
              ("gp", "order", ["order", "n", "t"]),
              ("nilpotency", "nilpotency class", ["nilpotency", "n", "t"]),
+             ("malle", "Malle asymptotic", ["n", "malle_ainv", ("malle_b", -1), ("malle_c", -1), "t"]),
              ("num_conj_classes", "num. conjugacy classes", ["num_conj_classes", "order", "n", "t"])]
     jump_example = "8T14"
     jump_egspan = "e.g. 8T14"
@@ -497,6 +561,42 @@ class GalSearchArray(SearchArray):
             name="prim",
             label="Primitive",
             knowl="gg.primitive")
+        concentrated = YesNoBox(
+            name="concentrated",
+            label="Concentrated",
+            knowl="gg.concentrated",
+            advanced=True)
+        semiconcentrated = YesNoBox(
+            name="semiconcentrated",
+            label="Semiconcentrated",
+            knowl="gg.semiconcentrated",
+            advanced=True)
+        malle_a = TextBox(
+            name="malle_a",
+            label="Malle $a(G)$",
+            knowl="gg.malle_a",
+            example="1/2",
+            example_span="1/3 or 1/5",
+            advanced=True)
+        malle_b = TextBox(
+            name="malle_b",
+            label="Malle $b(G)$",
+            knowl="gg.malle_b",
+            example="2",
+            example_span="2 or 4-6",
+            advanced=True)
+        malle_status=SelectBox(
+            name="malle_status",
+            label="Malle status",
+            knowl="gg.malle_status",
+            options=[("", ""),
+                     ("0", "unknown"),
+                     ("1", "lower bound"),
+                     ("2", "a known"),
+                     ("3", "a + asymptotic known"),
+                     ("4", "a + explicit b known"),
+                     ("5", "a + b known"),
+                     ("6", "a + b + c known")])
 
         n = TextBox(
             name="n",
@@ -515,7 +615,8 @@ class GalSearchArray(SearchArray):
             label="Transitivity",
             knowl="gg.transitivity",
             example="2",
-            example_span="2 or 4,6 or 2..5 or 4,6..8")
+            example_span="2 or 4,6 or 2..5 or 4,6..8",
+            advanced=True)
         order = TextBox(
             name="order",
             label="Order",
@@ -552,9 +653,9 @@ class GalSearchArray(SearchArray):
             example_span="1 or 2,3 or 1..5 or 1,3..10")
         count = CountBox()
 
-        self.browse_array = [[n, parity], [t, cyc], [order, solv], [nilpotency, prim], [arith_equiv, aut], [gal], [count, transitivity]]
+        self.browse_array = [[n, parity], [t, cyc], [order, solv], [nilpotency, prim], [arith_equiv, aut], [gal], [concentrated, semiconcentrated], [malle_a, malle_b], [count, transitivity]]
 
-        self.refine_array = [[parity, cyc, solv, prim, arith_equiv], [n, t, order, gal, nilpotency], [aut, transitivity]]
+        self.refine_array = [[parity, cyc, solv, prim, arith_equiv], [n, t, order, gal, nilpotency], [aut, transitivity, concentrated, semiconcentrated], [malle_a, malle_b]]
 
 def yesone(s):
     return "yes" if s in ["yes", 1] else "no"

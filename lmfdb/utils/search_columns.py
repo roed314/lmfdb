@@ -125,7 +125,7 @@ class SearchCol:
         self.download_col = download_col
 
         for key, val in kwds.items():
-            assert hasattr(self, key) and key.startswith("th_") or key.startswith("td_")
+            assert hasattr(self, key) and key.startswith("th_") or key.startswith("td_"), key
             setattr(self, key, getattr(self, key) + val)
 
     def _get(self, rec, name=None, downloading=False):

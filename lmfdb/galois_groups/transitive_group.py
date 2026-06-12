@@ -115,8 +115,136 @@ class WebGaloisGroup:
     def t(self):
         return self._data['t']
 
+    def is_cyclic(self):
+        return self._data['cyc'] == 1
+
     def is_abelian(self):
         return self._data['ab'] == 1
+
+    def is_solvable(self):
+        return self._data['solv'] == 1
+
+    def is_concentrated(self):
+        return self._data['concentrated']
+
+    @lazy_attribute
+    def concentrated_core(self):
+        if self._data.get("concentrated_core") is not None:
+            # This should be a permutation subgroup knowl ideally
+            return self._data["concentrated_core"]
+        return "not computed"
+
+    def is_semiconcentrated(self):
+        return self._data['semiconcentrated']
+
+    @lazy_attribute
+    def semiconcentrated_core(self):
+        if self._data.get("semiconcentrated_core") is not None:
+            # This should be a permutation subgroup knowl ideally
+            return self._data["semiconcentrated_core"]
+        return "not computed"
+
+    @lazy_attribute
+    def malle_str(self):
+        a = self.malle_a
+        # Should get updated to malle_wang_b
+        b1 = self._data['malle_b'] - 1
+        c = self._data.get('malle_c')
+        if c is None:
+            c = "c"
+        return fr"${c} X^{{{a}}} \log(X)^{{{b1}}}$"
+
+    @lazy_attribute
+    def malle_a(self):
+        if self.n() == 1:
+            return "0"
+        else:
+            return f"1/{self._data['malle_ainv']}"
+
+    @lazy_attribute
+    def malle_b(self):
+        return self._data["malle_b"]
+
+    @lazy_attribute
+    def malle_wang_b(self):
+        return self._data.get("malle_wang_b", "not computed")
+
+    @lazy_attribute
+    def mall_wang_c(self):
+        return self._data.get("malle_c", "not computed")
+
+    @lazy_attribute
+    def _malle_status(self):
+        return self._data.get("malle_status")
+
+    @lazy_attribute
+    def malle_status(self):
+        # Where are 6T2 (Galois S3) and 9T7 (He3)?
+        status = self._malle_status
+        if status is None:
+            return "not computed" # Not yet specified; we should eventually classify these
+        if status == 0:
+            # e.g. S6
+            return "unknown" # Explicity marked as not yet proven
+        if status == 1:
+            # e.g. A4
+            return "lower bound known matching expected $a(G)$ and $b(G)$ without matching upper bound"
+        if status == 2:
+            # e.g. nilpotent groups not subject to one of the cases below
+            return r"upper and lower bounds of the form $X^{a(G)+\epsilon}$ with expected $a(G)$"
+        if status == 3:
+            # e.g. from Alberts-Bucur, such as groups of nilpotency class 2 not subject to [ALOWW]
+            return "asymptotic known with expected $a(G)$ with unknown $b$"
+        if status == 4:
+            # e.g. subject to [ALOWW] but where b has not been checked to agree with Wang's prediction
+            return "asymptotic known with expected $a(G)$ and explicit $b$ (not yet checked to agree with expectation)"
+        if status == 5:
+            # e.g. subject to [ALOWW] where fibers all have same b
+            return "asymptotic known with expected $a(G)$ and $b(G)$, and explicit $c$ (not yet checked to agree with expectation)"
+        if status == 6:
+            # e.g. Galois D6
+            return r"asymptotic known with expected $a(G)$, $b(G)$, and $c(G)$"
+        #if status == 7:
+        #    # e.g. nilpotent with minimal index central; nilpotent with minimal index elements + identity forming abelian normal subgroup
+        #    return r"asymptotic known with expected $a(G)$ and $b(G)$ over both $\Q$ and number fields"
+        #if status == 8:
+        #    # e.g. D4
+        #    return r"asymptotic known with expected $a(G)$, $b(G)$, and $c(G)$ over both $\Q$ and number fields"
+        #if status == 9:
+        #    # e.g. S3, S4, S5
+        #    return r"asymptotic known with expected $a(G)$, $b(G)$, and $c(G)$ over both $\Q$ and number fields, with finitely many local conditions allowed"
+        #if status == 10:
+        #    # e.g. abelian groups
+        #    return r"asymptotic known with expected $a(G)$, $b(G)$, and $c(G)$ over both $\Q$ and number fields, with finitely many local conditions and restricted ramification allowed"
+
+    @lazy_attribute
+    def malle_proven(self):
+        # Asymptotic known with specific b (ie status > 2)
+        return self._malle_status is not None and self._malle_status > 2
+
+    @lazy_attribute
+    def malle_upper(self):
+        a = self._data.get("malle_upper_a")
+        if a is None:
+            return "not computed"
+        b = self._data.get("malle_upper_b")
+        if b is None:
+            return r"$X^{%s+\epsilon}$" % a
+        if b == 0:
+            return r"$cX^{%s}$" % a
+        return r"$cX^{%s}\log(X)^{%s}$" % (a, b)
+
+    @lazy_attribute
+    def malle_lower(self):
+        a = self._data.get("malle_lower_a")
+        if a is None:
+            return "not computed"
+        b = self._data.get("malle_lower_b")
+        if b is None:
+            return r"$X^{%s-\epsilon}$" % a
+        if b == 0:
+            return r"$cX^{%s}$" % a
+        return r"$X^{%s}\log(X)^{%s}$" % (a, b)
 
     def arith_equivalent(self):
         if 'arith_equiv' in self._data:
@@ -166,6 +294,16 @@ class WebGaloisGroup:
 
     def aut_knowl(self):
         return abstract_group_display_knowl(self._data['aut_label'])
+
+    @lazy_attribute
+    def abstract_knowl(self):
+        gp_label = self._data['abstract_label']
+        pretty = group_display_short(self._data['n'], self._data['t'], emptyifnotpretty=True)
+        return abstract_group_display_knowl(gp_label, pretty if pretty else gp_label)
+
+    @lazy_attribute
+    def perm_knowl(self):
+        return transitive_group_display_knowl(self.label, self.label)
 
     def gapgroupnt(self):
         if int(self.n()) == 1:
@@ -247,17 +385,10 @@ class WebGaloisGroup:
 
     @lazy_attribute
     def malle_a(self):
-        ccs = self.conjclasses
-        if not ccs:
-            return None
-        inds = [z[5] for z in ccs]
-        if len(inds) == 1:
+        ainv = self._data['malle_ainv']
+        if ainv == 0:
             return 0
-        if len(inds) == 0:
-            return None
-        inds = [z for z in inds if z > 0]
-
-        return QQ(f"1/{min(inds)}")
+        return 1 / QQ(ainv)
 
     @lazy_attribute
     def can_chartable(self):
