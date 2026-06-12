@@ -149,6 +149,27 @@ class WebGaloisGroup:
         return self._data.get("semiconcentrated_cores")
 
     @lazy_attribute
+    def semiconcentrated_cores_display(self):
+        cores = self.semiconcentrated_cores
+        if not cores:
+            return None
+        gens = cores.get("gens")
+        invs = cores.get("invs")
+        if gens is None:
+            return {"gens": None, "invs": invs}
+        rendered = []
+        for subgroup in gens:
+            subgroup_gens = []
+            for g in subgroup:
+                try:
+                    perm = Permutations(self.n()).unrank(int(g))
+                    subgroup_gens.append('$' + cyclestrings(perm) + '$')
+                except Exception:
+                    subgroup_gens.append(str(g))
+            rendered.append(', '.join(subgroup_gens))
+        return {"gens": rendered, "invs": invs}
+
+    @lazy_attribute
     def malle_str(self):
         a = self.malle_a
         # Should get updated to malle_wang_b

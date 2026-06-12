@@ -20,15 +20,21 @@
   <tr><td>{{ KNOWL('gg.semiconcentrated', 'Semiconcentrated core') }}</td><td> {{gp.semiconcentrated_core}} </td></tr>
   <tr><td>{{ KNOWL('gg.semiconcentrated_abelian', 'Semiconcentrated abelian') }}</td><td> {{ yesno(gp._data.get('semiconcentrated_abelian')) }} </td></tr>
   <tr><td>{{ KNOWL('gg.semiconcentrated_cores', 'Semiconcentrated cores') }}</td><td>
-      {% if gp.semiconcentrated_cores %}
+      {% if gp.semiconcentrated_cores_display %}
         <dl>
-          {% if gp.semiconcentrated_cores.gens %}
+          {% if gp.semiconcentrated_cores_display.gens %}
             <dt>Generators</dt>
-            <dd><pre>{{ gp.semiconcentrated_cores.gens | pprint }}</pre></dd>
+            <dd>
+              <ul>
+                {% for subgroup in gp.semiconcentrated_cores_display.gens %}
+                  <li>{{ subgroup | safe }}</li>
+                {% endfor %}
+              </ul>
+            </dd>
           {% endif %}
-          {% if gp.semiconcentrated_cores.invs %}
+          {% if gp.semiconcentrated_cores_display.invs %}
             <dt>Invariants</dt>
-            <dd>{{ gp.semiconcentrated_cores.invs }}</dd>
+            <dd>{{ gp.semiconcentrated_cores_display.invs }}</dd>
           {% endif %}
         </dl>
       {% else %}
