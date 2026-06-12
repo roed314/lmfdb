@@ -10,7 +10,7 @@ from flask import render_template, url_for
 
 from lmfdb.utils import list_to_latex_matrix, integer_divisors, sparse_cyclotomic_to_mathml, raw_typeset, display_knowl
 from lmfdb.groups.abstract.main import abstract_group_namecache, abstract_group_display_knowl
-from lmfdb.groups.abstract.web_groups import WebAbstractGroup
+from lmfdb.groups.abstract.web_groups import WebAbstractGroup, abelian_gp_display
 
 CC_LIMIT = 160
 
@@ -156,6 +156,7 @@ class WebGaloisGroup:
         gens = cores.get("gens")
         invs = cores.get("invs")
         if gens is None:
+            #return {"gens": None, "invs": abelian_gp_display(tuple(invs)) if invs else None}
             return {"gens": None, "invs": invs}
         rendered = []
         for subgroup in gens:
@@ -168,6 +169,7 @@ class WebGaloisGroup:
                 except Exception:
                     subgroup_gens.append(str(g))
             rendered.append(', '.join(subgroup_gens))
+        #return {"gens": rendered, "invs": abelian_gp_display(tuple(invs)) if invs else None}
         return {"gens": rendered, "invs": invs}
 
     @lazy_attribute
