@@ -162,7 +162,8 @@ class WebGaloisGroup:
             subgroup_gens = []
             for g in subgroup:
                 try:
-                    perm = Permutations(self.n()).unrank(int(g))
+                    code = int(g)
+                    perm = SymmetricGroup(self.n())(Permutations(self.n()).unrank(code))
                     subgroup_gens.append('$' + cyclestrings(perm) + '$')
                 except Exception:
                     subgroup_gens.append(str(g))

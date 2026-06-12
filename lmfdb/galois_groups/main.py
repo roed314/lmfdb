@@ -715,13 +715,13 @@ class GalSearchArray(SearchArray):
             [order, solv],
             [nilpotency, prim],
             [arith_equiv, aut],
-            [gal, transitivity],
+            [gal],  # This should be on one line
             [concentrated, semiconcentrated],
             [concentrated_abelian, semiconcentrated_abelian],
-            [concentrated_nilpotent, malle_a],
-            [malle_b, malle_b_status],
-            [malle_turkelli_b, malle_wang_b],
-            [count]
+            [concentrated_nilpotent, transitivity],
+            [malle_b, malle_a],
+            [malle_turkelli_b, malle_b_status],
+            [count, malle_wang_b]
         ]
 
         self.refine_array = [
