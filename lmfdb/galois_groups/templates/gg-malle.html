@@ -22,16 +22,7 @@
   <tr><td>{{ KNOWL('gg.semiconcentrated_cores', 'Semiconcentrated cores') }}</td><td>
       {% if gp.semiconcentrated_cores_display %}
         <dl>
-          {% if gp.semiconcentrated_cores_display.gens %}
-            <dt>Generators</dt>
-            <dd>
-              <ul>
-                {% for subgroup in gp.semiconcentrated_cores_display.gens %}
-                  <li>{{ subgroup | safe }}</li>
-                {% endfor %}
-              </ul>
-            </dd>
-          {% endif %}
+          {# generators display is disabled for now #}
           {% if gp.semiconcentrated_cores_display.invs %}
             <dt>Invariants</dt>
             <dd>{{ gp.semiconcentrated_cores_display.invs }}</dd>

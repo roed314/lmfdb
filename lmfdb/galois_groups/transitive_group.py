@@ -148,6 +148,23 @@ class WebGaloisGroup:
     def semiconcentrated_cores(self):
         return self._data.get("semiconcentrated_cores")
 
+    def _semiconcentrated_abelian_display(self, invs):
+        if not invs:
+            return None
+
+        def render_group(group):
+            if not group:
+                return None
+            if any(isinstance(item, (list, tuple)) for item in group):
+                parts = [render_group(item) for item in group if item]
+                return '; '.join(part for part in parts if part)
+            return '$' + abelian_gp_display([int(x) for x in group]) + '$'
+
+        if any(isinstance(item, (list, tuple)) for item in invs):
+            rendered = [render_group(group) for group in invs if group]
+            return '; '.join(part for part in rendered if part)
+        return '$' + abelian_gp_display([int(x) for x in invs]) + '$'
+
     @lazy_attribute
     def semiconcentrated_cores_display(self):
         cores = self.semiconcentrated_cores
@@ -155,9 +172,9 @@ class WebGaloisGroup:
             return None
         gens = cores.get("gens")
         invs = cores.get("invs")
+        invs_display = self._semiconcentrated_abelian_display(invs)
         if gens is None:
-            #return {"gens": None, "invs": abelian_gp_display(tuple(invs)) if invs else None}
-            return {"gens": None, "invs": invs}
+            return {"gens": None, "invs": invs_display}
         rendered = []
         for subgroup in gens:
             subgroup_gens = []
@@ -169,8 +186,7 @@ class WebGaloisGroup:
                 except Exception:
                     subgroup_gens.append(str(g))
             rendered.append(', '.join(subgroup_gens))
-        #return {"gens": rendered, "invs": abelian_gp_display(tuple(invs)) if invs else None}
-        return {"gens": rendered, "invs": invs}
+        return {"gens": rendered, "invs": invs_display}
 
     @lazy_attribute
     def malle_str(self):
