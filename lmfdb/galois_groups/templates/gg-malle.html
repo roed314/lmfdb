@@ -19,12 +19,11 @@
   <tr><td>{{ KNOWL('gg.semiconcentrated', 'Semiconcentrated') }}</td><td> {{yesno(gp.is_semiconcentrated()) }} </td></tr>
   <tr><td>{{ KNOWL('gg.semiconcentrated', 'Semiconcentrated core') }}</td><td> {{gp.semiconcentrated_core}} </td></tr>
   <tr><td>{{ KNOWL('gg.semiconcentrated_abelian', 'Semiconcentrated abelian') }}</td><td> {{ yesno(gp._data.get('semiconcentrated_abelian')) }} </td></tr>
-  <tr><td>{{ KNOWL('gg.semiconcentrated_cores', 'Semiconcentrated cores') }}</td><td>
+  <tr><td>{{ KNOWL('gg.semiconcentrated_cores', 'Semiconcentrated core invariants') }}</td><td>
       {% if gp.semiconcentrated_cores_display %}
         <dl>
           {# generators display is disabled for now #}
           {% if gp.semiconcentrated_cores_display.invs %}
-            <dt>Invariants</dt>
             <dd>{{ gp.semiconcentrated_cores_display.invs }}</dd>
           {% endif %}
         </dl>
