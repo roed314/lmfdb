@@ -160,7 +160,7 @@ gg_columns = SearchColumns([
     MathCol("malle_wang_b", "gg.malle_b", "Wang $b(G)$", default=lambda info: info.get("malle_wang_b")),
     MathCol("malle_c", "gg.malle_c", "Malle $c(G)$", default=lambda info: info.get("malle_c")),
     MultiProcessedCol("malle_asymptotic", "gg.malle_status", "Malle Asymp.", ["malle_status"], malle_asymp, default=lambda info: info.get("malle_status")),
-    ProcessedCol("malle_status", "gg.malle_status", "Malle K`nown", malle_status_shorten, default=lambda info: info.get("malle_status")),
+    ProcessedCol("malle_status", "gg.malle_status", "Malle Known", malle_status_shorten, default=lambda info: info.get("malle_status")),
     MathCol("nilpotency", "group.nilpotent", "Nil. class", short_title="nilpotency class", default=False),
     MathCol("auts", "gg.field_automorphisms", r"$\#\Aut(F/K)$", short_title="field auts"),
     MathCol("transitivity", "gg.transitivity", "Transitivity", short_title="transitivity",default=lambda info: info.get("transitivity")),
@@ -175,7 +175,7 @@ gg_columns = SearchColumns([
                       apply_download=lambda s, b, c: [s, b])
 ],
 
-    db_cols=["bound_siblings", "abstract_label", "label", "name", "n", "order", "parity", "pretty", "siblings", "solv", "subfields", "nilpotency", "num_conj_classes", "auts", "transitivity", "concentrated", "semiconcentrated", "malle_ainv", "malle_b", "malle_b_status", "malle_status"]) # TODO: change malle_b to malle_wang_b, add malle_c
+    db_cols=["bound_siblings", "abstract_label", "label", "name", "n", "order", "parity", "pretty", "siblings", "solv", "subfields", "nilpotency", "num_conj_classes", "auts", "transitivity", "concentrated", "semiconcentrated", "malle_ainv", "malle_b", "malle_turkelli_b", "malle_wang_b", "malle_b_status", "malle_status"]) # TODO: change malle_b to malle_wang_b, add malle_c
 #gg_columns.below_download = r"<p>Results are complete for degrees $\leq 23$.</p>"
 
 def gg_postprocess(res, info, query):
