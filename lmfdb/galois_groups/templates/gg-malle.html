@@ -18,6 +18,21 @@
   <tr><td>{{ KNOWL('gg.concentrated', 'Concentrated core') }}</td><td> {{gp.concentrated_core}} </td></tr>
   <tr><td>{{ KNOWL('gg.semiconcentrated', 'Semiconcentrated') }}</td><td> {{yesno(gp.is_semiconcentrated()) }} </td></tr>
   <tr><td>{{ KNOWL('gg.semiconcentrated', 'Semiconcentrated core') }}</td><td> {{gp.semiconcentrated_core}} </td></tr>
+  <tr><td>{{ KNOWL('gg.semiconcentrated_abelian', 'Semiconcentrated abelian') }}</td><td> {{ yesno(gp._data.get('semiconcentrated_abelian')) }} </td></tr>
+  <tr><td>{{ KNOWL('gg.semiconcentrated_cores', 'Semiconcentrated core invariants') }}</td><td>
+      {% if gp.semiconcentrated_cores_display %}
+        <dl>
+          {# generators display is disabled for now #}
+          {% if gp.semiconcentrated_cores_display.invs %}
+            <dd>{{ gp.semiconcentrated_cores_display.invs }}</dd>
+          {% endif %}
+        </dl>
+      {% else %}
+        not computed
+      {% endif %}
+    </td></tr>
+  <tr><td>{{ KNOWL('gg.concentrated_nilpotent', 'Concentrated nilpotent') }}</td><td> {{ yesno(gp._data.get('concentrated_nilpotent')) }} </td></tr>
+  <tr><td>{{ KNOWL('gg.concentrated_abelian', 'Concentrated abelian') }}</td><td> {{ yesno(gp._data.get('concentrated_abelian')) }} </td></tr>
   <tr><td>{{ KNOWL('gg.other_representations', 'Low degree siblings') }}</td><td> {{gp.otherrep_list(givebound=False) | safe}}</td></tr>
 </table>
 
@@ -28,8 +43,9 @@
 
 <table>
   <tr><td>{{ KNOWL('gg.malle_a', "$a(G)$") }}</td><td> ${{ gp.malle_a }}$ </td></tr>
-  <tr><td>{{ KNOWL('gg.malle_b', "$b(G)$ (corrected)") }}</td><td> {{ gp.malle_wang_b }} </td></tr>
-  <tr><td>{{ KNOWL('gg.malle_b', "$b(G)$ (original)") }}</td><td> {{ gp.malle_b }} </td></tr>
+  <tr><td>{{ KNOWL('gg.malle_b', "$b(G)$ (Malle)") }}</td><td> {{ gp.malle_b }} </td></tr>
+  <tr><td>{{ KNOWL('gg.malle_b', "$b(G)$ (Wang)") }}</td><td> {{ gp.malle_wang_b }} </td></tr>
+  <tr><td>{{ KNOWL('gg.malle_b', "$b(G)$ (Türkelli)") }}</td><td> {{ gp.malle_turkelli_b }} </td></tr>  
   <tr><td>{{ KNOWL('gg.malle_c', "$c(G)$") }}</td><td> {{ gp.malle_c }} </td></tr>
   {# Don't currently display d = LCM(order of minimal index elements) #}
 </table>

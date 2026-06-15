@@ -10,7 +10,7 @@ from flask import render_template, url_for
 
 from lmfdb.utils import list_to_latex_matrix, integer_divisors, sparse_cyclotomic_to_mathml, raw_typeset, display_knowl
 from lmfdb.groups.abstract.main import abstract_group_namecache, abstract_group_display_knowl
-from lmfdb.groups.abstract.web_groups import WebAbstractGroup
+from lmfdb.groups.abstract.web_groups import WebAbstractGroup, abelian_gp_display
 
 CC_LIMIT = 160
 
@@ -145,6 +145,50 @@ class WebGaloisGroup:
         return "not computed"
 
     @lazy_attribute
+    def semiconcentrated_cores(self):
+        return self._data.get("semiconcentrated_cores")
+
+    def _semiconcentrated_abelian_display(self, invs):
+        if not invs:
+            return None
+
+        def render_group(group):
+            if not group:
+                return None
+            if any(isinstance(item, (list, tuple)) for item in group):
+                parts = [render_group(item) for item in group if item]
+                return '; '.join(part for part in parts if part)
+            return '$' + abelian_gp_display([int(x) for x in group]) + '$'
+
+        if any(isinstance(item, (list, tuple)) for item in invs):
+            rendered = [render_group(group) for group in invs if group]
+            return '; '.join(part for part in rendered if part)
+        return '$' + abelian_gp_display([int(x) for x in invs]) + '$'
+
+    @lazy_attribute
+    def semiconcentrated_cores_display(self):
+        cores = self.semiconcentrated_cores
+        if not cores:
+            return None
+        gens = cores.get("gens")
+        invs = cores.get("invs")
+        invs_display = self._semiconcentrated_abelian_display(invs)
+        if gens is None:
+            return {"gens": None, "invs": invs_display}
+        rendered = []
+        for subgroup in gens:
+            subgroup_gens = []
+            for g in subgroup:
+                try:
+                    code = int(g)
+                    perm = SymmetricGroup(self.n())(Permutations(self.n()).unrank(code))
+                    subgroup_gens.append('$' + cyclestrings(perm) + '$')
+                except Exception:
+                    subgroup_gens.append(str(g))
+            rendered.append(', '.join(subgroup_gens))
+        return {"gens": rendered, "invs": invs_display}
+
+    @lazy_attribute
     def malle_str(self):
         a = self.malle_a
         # Should get updated to malle_wang_b
@@ -164,6 +208,10 @@ class WebGaloisGroup:
     @lazy_attribute
     def malle_b(self):
         return self._data["malle_b"]
+
+    @lazy_attribute
+    def malle_turkelli_b(self):
+        return self._data.get("malle_turkelli_b", "not computed")
 
     @lazy_attribute
     def malle_wang_b(self):
