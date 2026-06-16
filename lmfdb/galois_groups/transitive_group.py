@@ -251,7 +251,7 @@ class WebGaloisGroup:
             return "asymptotic known with expected %s and %s, and explicit $c$ (not yet checked to agree with expectation)" % (display_knowl("gg.malle_a", "$a_M(G)$"), display_knowl("gg.malle_b", "$b_W(G)$"))
         if status == 6:
             # e.g. Galois D6
-            return r"asymptotic known with expected %s, %s, and %s" % (display_knowl("gg.malle_a", "$a_M(G)$"), display_knowl("gg.malle_b", "$b_W(G)$"), display_knowl("gg.malle_c", "$c_{LS}(G)$")
+            return r"asymptotic known with expected %s, %s, and %s" % (display_knowl("gg.malle_a", "$a_M(G)$"), display_knowl("gg.malle_b", "$b_W(G)$"), display_knowl("gg.malle_c", "$c_{LS}(G)$"))
         #if status == 7:
         #    # e.g. nilpotent with minimal index central; nilpotent with minimal index elements + identity forming abelian normal subgroup
         #    return r"asymptotic known with expected $a(G)$ and $b(G)$ over both $\Q$ and number fields"
