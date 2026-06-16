@@ -239,7 +239,7 @@ class WebGaloisGroup:
             return "lower bound known matching %s and %s without matching upper bound" % (display_knowl("gg.malle_a", "$a_M(G)$"), display_knowl("gg.malle_b", "$b_W(G)$"))
         if status == 2:
             # e.g. nilpotent groups not subject to one of the cases below
-            return r"upper and lower bounds of the form $X^{a_M(G)+\epsilon}$ with expected $a(G)$" %
+            return r"upper and lower bounds of the form $X^{a_M(G)+\epsilon}$ with %s $a_M(G)$" % (display_knowl("gg.malle_a", "expected"),)
         if status == 3:
             # e.g. from Alberts-Bucur, such as groups of nilpotency class 2 not subject to [ALOWW]
             return "asymptotic known with expected %s with unknown $b$" % (display_knowl("gg.malle_a", "$a_M(G)$"),)
