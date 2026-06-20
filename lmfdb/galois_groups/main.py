@@ -621,14 +621,14 @@ class GalSearchArray(SearchArray):
         malle_turkelli_b = TextBox(
             name="malle_turkelli_b",
             label="Türkelli $b(G)$",
-            knowl="gg.malle_b",
+            knowl="gg.turkelli_b",
             example="2",
             example_span="2 or 4-6",
             advanced=True)
         malle_wang_b = TextBox(
             name="malle_wang_b",
             label="Wang $b(G)$",
-            knowl="gg.malle_b",
+            knowl="gg.wang_b",
             example="2",
             example_span="2 or 4-6",
             advanced=True)

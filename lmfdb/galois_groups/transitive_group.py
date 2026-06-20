@@ -196,7 +196,9 @@ class WebGaloisGroup:
         c = self._data.get('malle_c')
         if c is None:
             c = "c"
-        return fr"${c} X^{{{a}}} \log(X)^{{{b1}}}$"
+        else:
+            c = str(c)+r'...\cdot '
+        return fr"${c}\ X^{{{a}}} \log(X)^{{{b1}}}$"
 
     @lazy_attribute
     def malle_a(self):
@@ -218,7 +220,7 @@ class WebGaloisGroup:
         return self._data.get("malle_wang_b", "not computed")
 
     @lazy_attribute
-    def mall_wang_c(self):
+    def malle_c(self):
         return self._data.get("malle_c", "not computed")
 
     @lazy_attribute
@@ -236,7 +238,7 @@ class WebGaloisGroup:
             return "unknown" # Explicity marked as not yet proven
         if status == 1:
             # e.g. A4
-            return "lower bound known matching %s and %s without matching upper bound" % (display_knowl("gg.malle_a", "$a_M(G)$"), display_knowl("gg.malle_b", "$b_W(G)$"))
+            return "lower bound known matching %s and %s without matching upper bound" % (display_knowl("gg.malle_a", "$a_M(G)$"), display_knowl("gg.wang_b", "$b_W(G)$"))
         if status == 2:
             # e.g. nilpotent groups not subject to one of the cases below
             return r"upper and lower bounds of the form $X^{a_M(G)+\epsilon}$ with %s $a_M(G)$" % (display_knowl("gg.malle_a", "expected"),)

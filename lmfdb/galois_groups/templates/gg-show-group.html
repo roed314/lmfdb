@@ -79,7 +79,7 @@ table.reptable td, table.reptable th {
 
   <table>
     <tr><td>{{KNOWL('gg.malle', 'Number field count')}}</td><td>{{ gp.malle_str }}</td></tr>
-    <tr><td>{{KNOWL('gg.malle_status', 'Proven')}}</td><td>{{ gp.malle_status }}</td></tr>
+    <tr><td>{{KNOWL('gg.malle_status', 'Proven')}}</td><td>{{ gp.malle_status|safe }}</td></tr>
     <tr><td colspan="2"><a href="{{url_for('.malle', label=info.label)}}">more details</a></td></tr>
   </table>
 
