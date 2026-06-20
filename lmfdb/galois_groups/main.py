@@ -154,7 +154,6 @@ gg_columns = SearchColumns([
     CheckCol("solv", "group.solvable", "Solvable"),
     CheckCol("concentrated", "gg.concentrated", "Concentrated", default=lambda info: info.get("concentrated")),
     CheckCol("semiconcentrated", "gg.semiconcentrated", "Semiconcentrated", default=lambda info: info.get("semiconcentrated")),
-<<<<<<< HEAD
     CheckCol("semiconcentrated_abelian", "gg.semiconcentrated_abelian", "Semiconcentrated abelian", default=lambda info: info.get("semiconcentrated_abelian")),
     CheckCol("concentrated_nilpotent", "gg.concentrated_nilpotent", "Concentrated nilpotent", default=lambda info: info.get("concentrated_nilpotent")),
     CheckCol("concentrated_abelian", "gg.concentrated_abelian", "Concentrated abelian", default=lambda info: info.get("concentrated_abelian")),
@@ -162,10 +161,6 @@ gg_columns = SearchColumns([
     MathCol("malle_b", "gg.malle_b", "$b_M(G)$", default=lambda info: info.get("malle_b")), # TODO: Update to malle_wang_b when available
     MathCol("malle_wang_b", "gg.malle_b", "$b_W(G)$", default=lambda info: info.get("malle_wang_b")),
     MathCol("malle_turkelli_b", "gg.malle_b", "$b_T(G)$", default=lambda info: info.get("malle_turkelli_b")),
-=======
-    MultiProcessedCol("malle_a", "gg.malle_a", "Malle $a(G)$", ["malle_ainv"], lambda ainv: 0 if ainv == 0 else 1 / ZZ(ainv), default=lambda info: info.get("malle_ainv"), mathmode=True),
-    MathCol("malle_b", "gg.malle_b", "Malle $b(G)$", default=lambda info: info.get("malle_b")), # TODO: Update to malle_wang_b when available
->>>>>>> ec01c8280 (Initial version of Malle pages)
     MathCol("malle_c", "gg.malle_c", "Malle $c(G)$", default=lambda info: info.get("malle_c")),
     MultiProcessedCol("malle_asymptotic", "gg.malle_status", "Malle Asymp.", ["malle_status"], malle_asymp, default=lambda info: info.get("malle_status")),
     ProcessedCol("malle_status", "gg.malle_status", "Malle Known", malle_status_shorten, default=lambda info: info.get("malle_status")),
@@ -183,11 +178,7 @@ gg_columns = SearchColumns([
                       apply_download=lambda s, b, c: [s, b])
 ],
 
-<<<<<<< HEAD
     db_cols=["bound_siblings", "abstract_label", "label", "name", "n", "order", "parity", "pretty", "siblings", "solv", "subfields", "nilpotency", "num_conj_classes", "auts", "transitivity", "concentrated", "semiconcentrated", "semiconcentrated_abelian", "concentrated_nilpotent", "concentrated_abelian", "malle_ainv", "malle_b", "malle_turkelli_b", "malle_wang_b", "malle_b_status", "malle_status"]) # TODO: change malle_b to malle_wang_b, add malle_c
-=======
-    db_cols=["bound_siblings", "abstract_label", "label", "name", "n", "order", "parity", "pretty", "siblings", "solv", "subfields", "nilpotency", "num_conj_classes", "auts", "transitivity", "concentrated", "semiconcentrated", "malle_ainv", "malle_b", "malle_status"]) # TODO: change malle_b to malle_wang_b, add malle_c
->>>>>>> ec01c8280 (Initial version of Malle pages)
 #gg_columns.below_download = r"<p>Results are complete for degrees $\leq 23$.</p>"
 
 def gg_postprocess(res, info, query):
@@ -265,7 +256,6 @@ def galois_group_search(info, query):
     parse_ints(info,query,'auts')
     parse_intinvs(info,query,'malle_a', qfield='malle_ainv')
     parse_ints(info,query,'malle_b') # TODO: Update to malle_wang_b
-<<<<<<< HEAD
     parse_ints(info,query,'malle_turkelli_b')
     parse_ints(info,query,'malle_wang_b')
     parse_ints(info,query,'malle_b_status')
@@ -274,10 +264,6 @@ def galois_group_search(info, query):
     parse_bool(info,query,'semiconcentrated_abelian')
     parse_bool(info,query,'concentrated_nilpotent')
     parse_bool(info,query,'concentrated_abelian')
-=======
-    parse_bool(info,query,'concentrated')
-    parse_bool(info,query,'semiconcentrated')
->>>>>>> ec01c8280 (Initial version of Malle pages)
     parse_ints(info,query,'malle_status')
     parse_galgrp(info, query, qfield=['label','n'], name='Galois group', field='gal')
     for param in ('cyc', 'solv', 'prim'):
@@ -590,16 +576,12 @@ class GalSearchArray(SearchArray):
             name="concentrated",
             label="Concentrated",
             knowl="gg.concentrated",
-<<<<<<< HEAD
             example_col=True,
-=======
->>>>>>> ec01c8280 (Initial version of Malle pages)
             advanced=True)
         semiconcentrated = YesNoBox(
             name="semiconcentrated",
             label="Semiconcentrated",
             knowl="gg.semiconcentrated",
-<<<<<<< HEAD
             example_col=True,
             advanced=True)
         semiconcentrated_abelian = YesNoBox(
@@ -614,14 +596,6 @@ class GalSearchArray(SearchArray):
             knowl="gg.concentrated_nilpotent",
             example_col=True,
             advanced=True)
-        concentrated_abelian = YesNoBox(
-            name="concentrated_abelian",
-            label="Concentrated abelian",
-            knowl="gg.concentrated_abelian",
-            example_col=True,
-=======
->>>>>>> ec01c8280 (Initial version of Malle pages)
-            advanced=True)
         malle_a = TextBox(
             name="malle_a",
             label="Malle $a(G)$",
@@ -629,11 +603,8 @@ class GalSearchArray(SearchArray):
             example="1/2",
             example_span="1/3 or 1/5",
             advanced=True)
-<<<<<<< HEAD
         
         # Search boxes for the various conjectured b-constants in Malle's conjecture
-=======
->>>>>>> ec01c8280 (Initial version of Malle pages)
         malle_b = TextBox(
             name="malle_b",
             label="Malle $b(G)$",
@@ -641,18 +612,17 @@ class GalSearchArray(SearchArray):
             example="2",
             example_span="2 or 4-6",
             advanced=True)
-<<<<<<< HEAD
         malle_turkelli_b = TextBox(
             name="malle_turkelli_b",
             label="Türkelli $b(G)$",
-            knowl="gg.malle_b",
+            knowl="gg.turkelli_b",
             example="2",
             example_span="2 or 4-6",
             advanced=True)
         malle_wang_b = TextBox(
             name="malle_wang_b",
             label="Wang $b(G)$",
-            knowl="gg.malle_b",
+            knowl="gg.wang_b",
             example="2",
             example_span="2 or 4-6",
             advanced=True)
@@ -669,8 +639,6 @@ class GalSearchArray(SearchArray):
             example_col=True,
             advanced=True)
 
-=======
->>>>>>> ec01c8280 (Initial version of Malle pages)
         malle_status=SelectBox(
             name="malle_status",
             label="Malle status",
@@ -739,7 +707,6 @@ class GalSearchArray(SearchArray):
             example_span="1 or 2,3 or 1..5 or 1,3..10")
         count = CountBox()
 
-<<<<<<< HEAD
         self.browse_array = [
             [n, parity],
             [t, cyc],
@@ -762,11 +729,9 @@ class GalSearchArray(SearchArray):
             [concentrated_nilpotent, concentrated_abelian, malle_a, malle_b, malle_turkelli_b],
             [malle_wang_b, malle_b_status, malle_status]
         ]
-=======
         self.browse_array = [[n, parity], [t, cyc], [order, solv], [nilpotency, prim], [arith_equiv, aut], [gal], [concentrated, semiconcentrated], [malle_a, malle_b], [count, transitivity]]
 
         self.refine_array = [[parity, cyc, solv, prim, arith_equiv], [n, t, order, gal, nilpotency], [aut, transitivity, concentrated, semiconcentrated], [malle_a, malle_b]]
->>>>>>> ec01c8280 (Initial version of Malle pages)
 
 def yesone(s):
     return "yes" if s in ["yes", 1] else "no"
