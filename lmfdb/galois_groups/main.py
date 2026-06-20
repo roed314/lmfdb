@@ -596,6 +596,12 @@ class GalSearchArray(SearchArray):
             knowl="gg.concentrated_nilpotent",
             example_col=True,
             advanced=True)
+        concentrated_abelian = YesNoBox(
+            name="concentrated_abelian",
+            label="Concentrated abelian",
+            knowl="gg.concentrated_abelian",
+            example_col=True,
+            advanced=True)
         malle_a = TextBox(
             name="malle_a",
             label="Malle $a(G)$",
