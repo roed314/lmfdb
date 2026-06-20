@@ -145,6 +145,7 @@ class WebGaloisGroup:
         return "not computed"
 
     @lazy_attribute
+<<<<<<< HEAD
     def semiconcentrated_cores(self):
         return self._data.get("semiconcentrated_cores")
 
@@ -189,6 +190,8 @@ class WebGaloisGroup:
         return {"gens": rendered, "invs": invs_display}
 
     @lazy_attribute
+=======
+>>>>>>> ec01c8280 (Initial version of Malle pages)
     def malle_str(self):
         a = self.malle_a
         # Should get updated to malle_wang_b
@@ -210,10 +213,13 @@ class WebGaloisGroup:
         return self._data["malle_b"]
 
     @lazy_attribute
+<<<<<<< HEAD
     def malle_turkelli_b(self):
         return self._data.get("malle_turkelli_b", "not computed")
 
     @lazy_attribute
+=======
+>>>>>>> ec01c8280 (Initial version of Malle pages)
     def malle_wang_b(self):
         return self._data.get("malle_wang_b", "not computed")
 
@@ -236,6 +242,7 @@ class WebGaloisGroup:
             return "unknown" # Explicity marked as not yet proven
         if status == 1:
             # e.g. A4
+<<<<<<< HEAD
             return "lower bound known matching %s and %s without matching upper bound" % (display_knowl("gg.malle_a", "$a_M(G)$"), display_knowl("gg.malle_b", "$b_W(G)$"))
         if status == 2:
             # e.g. nilpotent groups not subject to one of the cases below
@@ -252,6 +259,24 @@ class WebGaloisGroup:
         if status == 6:
             # e.g. Galois D6
             return r"asymptotic known with expected %s, %s, and %s" % (display_knowl("gg.malle_a", "$a_M(G)$"), display_knowl("gg.malle_b", "$b_W(G)$"), display_knowl("gg.malle_c", "$c_{LS}(G)$"))
+=======
+            return "lower bound known matching expected $a(G)$ and $b(G)$ without matching upper bound"
+        if status == 2:
+            # e.g. nilpotent groups not subject to one of the cases below
+            return r"upper and lower bounds of the form $X^{a(G)+\epsilon}$ with expected $a(G)$"
+        if status == 3:
+            # e.g. from Alberts-Bucur, such as groups of nilpotency class 2 not subject to [ALOWW]
+            return "asymptotic known with expected $a(G)$ with unknown $b$"
+        if status == 4:
+            # e.g. subject to [ALOWW] but where b has not been checked to agree with Wang's prediction
+            return "asymptotic known with expected $a(G)$ and explicit $b$ (not yet checked to agree with expectation)"
+        if status == 5:
+            # e.g. subject to [ALOWW] where fibers all have same b
+            return "asymptotic known with expected $a(G)$ and $b(G)$, and explicit $c$ (not yet checked to agree with expectation)"
+        if status == 6:
+            # e.g. Galois D6
+            return r"asymptotic known with expected $a(G)$, $b(G)$, and $c(G)$"
+>>>>>>> ec01c8280 (Initial version of Malle pages)
         #if status == 7:
         #    # e.g. nilpotent with minimal index central; nilpotent with minimal index elements + identity forming abelian normal subgroup
         #    return r"asymptotic known with expected $a(G)$ and $b(G)$ over both $\Q$ and number fields"
@@ -277,10 +302,17 @@ class WebGaloisGroup:
             return "not computed"
         b = self._data.get("malle_upper_b")
         if b is None:
+<<<<<<< HEAD
             return r"$X^{%s+\epsilon}$" % a
         if b == 0:
             return r"$cX^{%s}$" % a
         return r"$cX^{%s}\log(X)^{%s}$" % (a, b)
+=======
+            return r"X^{%s+\epsilon}" % a
+        if b == 0:
+            return r"cX^{%s}" % a
+        return r"cX^{%s}\log(X)^{%s}" % (a, b)
+>>>>>>> ec01c8280 (Initial version of Malle pages)
 
     @lazy_attribute
     def malle_lower(self):
@@ -289,10 +321,17 @@ class WebGaloisGroup:
             return "not computed"
         b = self._data.get("malle_lower_b")
         if b is None:
+<<<<<<< HEAD
             return r"$X^{%s-\epsilon}$" % a
         if b == 0:
             return r"$cX^{%s}$" % a
         return r"$X^{%s}\log(X)^{%s}$" % (a, b)
+=======
+            return r"X^{%s-\epsilon}" % a
+        if b == 0:
+            return r"cX^{%s}" % a
+        return r"X^{%s}\log(X)^{%s}" % (a, b)
+>>>>>>> ec01c8280 (Initial version of Malle pages)
 
     def arith_equivalent(self):
         if 'arith_equiv' in self._data:
