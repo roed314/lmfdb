@@ -735,9 +735,6 @@ class GalSearchArray(SearchArray):
             [concentrated_nilpotent, concentrated_abelian, malle_a, malle_b, malle_turkelli_b],
             [malle_wang_b, malle_b_status, malle_status]
         ]
-        self.browse_array = [[n, parity], [t, cyc], [order, solv], [nilpotency, prim], [arith_equiv, aut], [gal], [concentrated, semiconcentrated], [malle_a, malle_b], [count, transitivity]]
-
-        self.refine_array = [[parity, cyc, solv, prim, arith_equiv], [n, t, order, gal, nilpotency], [aut, transitivity, concentrated, semiconcentrated], [malle_a, malle_b]]
 
 def yesone(s):
     return "yes" if s in ["yes", 1] else "no"
