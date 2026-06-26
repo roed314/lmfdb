@@ -38,15 +38,15 @@
 
 <h2> {{ KNOWL('gg.malle', 'Asymptotic' if gp.malle_proven else 'Conjectured asymptotic') }} </h2>
 
-<p> The {% if not gp.malle_proven %}conjectured {% endif %}count of number fields with this Galois group, of discriminant up to $X$, is asymptotic to</p>
-<p>$c X^a \log(X)^{b-1}$</p>
+<p> The {% if not gp.malle_proven %}conjectured {% endif %}count of extensions of $\Q$ with Galois group {{gp.label}}, of absolute discriminant up to $X$, is asymptotic to</p>
+<div align="center">$\displaystyle c X^a \log(X)^{b-1}$</div>
 
 <table>
-  <tr><td>{{ KNOWL('gg.malle_a', "$a(G)$") }}</td><td> ${{ gp.malle_a }}$ </td></tr>
-  <tr><td>{{ KNOWL('gg.malle_b', "$b(G)$ (Malle)") }}</td><td> {{ gp.malle_b }} </td></tr>
-  <tr><td>{{ KNOWL('gg.wang_b', "$b(G)$ (Wang)") }}</td><td> {{ gp.malle_wang_b }} </td></tr>
-  <tr><td>{{ KNOWL('gg.turkelli_b', "$b(G)$ (Türkelli)") }}</td><td> {{ gp.malle_turkelli_b }} </td></tr>  
-  <tr><td>{{ KNOWL('gg.malle_c', "$c(G)$") }}</td><td> {{ gp.malle_c }} </td></tr>
+  <tr><td>{{ KNOWL('gg.malle_a', "$a$") }}</td><td> ${{ gp.malle_a }}$ </td></tr>
+  <tr><td>{{ KNOWL('gg.malle_b', "$b_M$ (Malle)") }}</td><td> {{ gp.malle_b }} </td></tr>
+  <tr><td>{{ KNOWL('gg.wang_b', "$b_W$ (Wang)") }}</td><td> {{ gp.malle_wang_b }} </td></tr>
+  <tr><td>{{ KNOWL('gg.turkelli_b', "$b_T$ (Türkelli)") }}</td><td> {{ gp.malle_turkelli_b }} </td></tr>  
+  <tr><td>{{ KNOWL('gg.malle_c', "$c$") }}</td><td> {{ gp.malle_c() }} </td></tr>
   {# Don't currently display d = LCM(order of minimal index elements) #}
 </table>
 
