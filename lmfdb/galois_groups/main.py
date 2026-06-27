@@ -25,6 +25,7 @@ from .transitive_group import (
     subfield_display, resolve_display, chartable,
     cclasses_display_knowl, character_table_display_knowl,
     group_alias_table, WebGaloisGroup, knowl_cache)
+
 from lmfdb.logger import logger
 
 # Test to see if this gap installation knows about transitive groups

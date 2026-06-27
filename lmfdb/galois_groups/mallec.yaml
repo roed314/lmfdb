@@ -1,0 +1,7 @@
+2T1: \frac{1}{\zeta(2)}=\frac{6}{\pi^2}
+3T1: \frac{11\sqrt{3}}{36\pi} \prod_{p\equiv 1 \pmod 6} \left(1-\frac{2}{p(p+1)}\right)
+3T2: \frac{1}{3\zeta(3)}
+4T1: \frac{3}{\pi^2}\left(\left(1+\frac{\sqrt{2}}{24}\right) \prod_{p\equiv 1 \pmod 4} \left(1+\frac{2}{p^{3/2}+p^{1/2}}\right)-1\right)
+4T2: \frac{23}{960} \prod_p\left(\left(1+\frac{3}{p}\right)\left(1-\frac{1}{p}\right)^3\right)
+4T5: \frac{5}{24} \prod_p \left(1+\frac{1}{p^2}-\frac{1}{p^3}-\frac{1}{p^4}\right)
+5T5: \frac{13}{120} \prod_p \left(1+\frac{1}{p^2}-\frac{1}{p^4}-\frac{1}{p^5} \right)
