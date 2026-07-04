@@ -36,6 +36,13 @@
   <tr><td>{{ KNOWL('gg.other_representations', 'Low degree siblings') }}</td><td> {{gp.otherrep_list(givebound=False) | safe}}</td></tr>
 </table>
 
+{% if gp.n() == 1 %}
+<p>
+    For any field $K$, there is a unique extension of $K$, namely $K$
+    itself, with this Galois group.
+</p>
+{% else %}
+
 <h2> {{ KNOWL('gg.malle', 'Asymptotic' if gp.malle_proven else 'Conjectured asymptotic') }} </h2>
 
 <p> The {% if not gp.malle_proven %}conjectured {% endif %}count of extensions of $\Q$ with Galois group {{gp.label}}, of absolute discriminant up to $X$, is asymptotic to</p>
@@ -94,6 +101,7 @@ Special methods for A_n and S_n
 
 {% endif %}
 
+{% endif %}
 {% endblock %}
 
 

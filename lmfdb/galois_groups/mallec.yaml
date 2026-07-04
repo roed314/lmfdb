@@ -5,3 +5,4 @@
 4T2: \frac{23}{960} \prod_p\left(\left(1+\frac{3}{p}\right)\left(1-\frac{1}{p}\right)^3\right)
 4T5: \frac{5}{24} \prod_p \left(1+\frac{1}{p^2}-\frac{1}{p^3}-\frac{1}{p^4}\right)
 5T5: \frac{13}{120} \prod_p \left(1+\frac{1}{p^2}-\frac{1}{p^4}-\frac{1}{p^5} \right)
+6T2: \left(\frac{4}{9}+\frac{1}{3^{8/3}}+\frac{2}{3^{10/3}}\right)(1-3^{-1})\prod_{p\neq 2} (1+p^{-1}+p^{-4/3})(1-p^{-1})
