@@ -193,6 +193,8 @@ class WebGaloisGroup:
 
     @lazy_attribute
     def malle_str(self):
+        if self.n() == 1:
+            return "$1$"
         a = self.malle_a
         # Should get updated to malle_wang_b
         b1 = self._data['malle_b'] - 1
