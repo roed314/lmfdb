@@ -25,6 +25,7 @@ from .transitive_group import (
     subfield_display, resolve_display, chartable,
     cclasses_display_knowl, character_table_display_knowl,
     group_alias_table, WebGaloisGroup, knowl_cache)
+
 from lmfdb.logger import logger
 
 # Test to see if this gap installation knows about transitive groups
@@ -621,14 +622,14 @@ class GalSearchArray(SearchArray):
         malle_turkelli_b = TextBox(
             name="malle_turkelli_b",
             label="Türkelli $b(G)$",
-            knowl="gg.malle_b",
+            knowl="gg.turkelli_b",
             example="2",
             example_span="2 or 4-6",
             advanced=True)
         malle_wang_b = TextBox(
             name="malle_wang_b",
             label="Wang $b(G)$",
-            knowl="gg.malle_b",
+            knowl="gg.wang_b",
             example="2",
             example_span="2 or 4-6",
             advanced=True)
@@ -641,7 +642,8 @@ class GalSearchArray(SearchArray):
                      ("0", "b_M = b_W = b_T"),
                      ("1", "b_M < b_W = b_T"),
                      ("2", "b_M = b_W < b_T"),
-                     ("3", "b_M < b_W < b_T")],
+                     ("3", "b_M < b_W < b_T"),
+                     ("4", "b_M < b_T, b_W unknown")],
             example_col=True,
             advanced=True)
 

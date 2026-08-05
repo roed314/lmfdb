@@ -14,6 +14,9 @@ from lmfdb.groups.abstract.web_groups import WebAbstractGroup, abelian_gp_displa
 
 CC_LIMIT = 160
 
+_curdir = os.path.dirname(os.path.abspath(__file__))
+mallec_pretty = yaml.load(open(os.path.join(_curdir, "mallec.yaml")), Loader=yaml.FullLoader)
+
 def knowl_cache(galois_labels=None, results=None):
     """
     Returns a dictionary for use in abstract_group_display_knowl, group_display and
@@ -190,13 +193,13 @@ class WebGaloisGroup:
 
     @lazy_attribute
     def malle_str(self):
+        if self.n() == 1:
+            return "$1$"
         a = self.malle_a
         # Should get updated to malle_wang_b
         b1 = self._data['malle_b'] - 1
-        c = self._data.get('malle_c')
-        if c is None:
-            c = "c"
-        return fr"${c} X^{{{a}}} \log(X)^{{{b1}}}$"
+        c = self.malle_c(show_c_equals=True)
+        return fr"$c\ X^{{{a}}} \log(X)^{{{b1}}}$ where {c}"
 
     @lazy_attribute
     def malle_a(self):
@@ -217,9 +220,26 @@ class WebGaloisGroup:
     def malle_wang_b(self):
         return self._data.get("malle_wang_b", "not computed")
 
-    @lazy_attribute
-    def mall_wang_c(self):
-        return self._data.get("malle_c", "not computed")
+    def malle_c(self, show_c_equals=False):
+        if self.label in mallec_pretty:
+            s = fr'{mallec_pretty[self.label]}\approx {self._data.get("malle_c")}$'
+            if show_c_equals:
+                return "$c="+s
+            else:
+                return "$"+s
+
+        c = self._data.get("malle_c", None)
+        if c:
+            s = f'{c}$'
+            if show_c_equals:
+                return r"$c\approx "+s
+            else:
+                return "$"+s
+        else:
+            if show_c_equals:
+                return "$c$ is not computed"
+            else:
+                return "not computed"
 
     @lazy_attribute
     def _malle_status(self):
@@ -236,7 +256,7 @@ class WebGaloisGroup:
             return "unknown" # Explicity marked as not yet proven
         if status == 1:
             # e.g. A4
-            return "lower bound known matching %s and %s without matching upper bound" % (display_knowl("gg.malle_a", "$a_M(G)$"), display_knowl("gg.malle_b", "$b_W(G)$"))
+            return "lower bound known matching %s and %s without matching upper bound" % (display_knowl("gg.malle_a", "$a_M(G)$"), display_knowl("gg.wang_b", "$b_W(G)$"))
         if status == 2:
             # e.g. nilpotent groups not subject to one of the cases below
             return r"upper and lower bounds of the form $X^{a_M(G)+\epsilon}$ with %s $a_M(G)$" % (display_knowl("gg.malle_a", "expected"),)
@@ -481,7 +501,7 @@ class WebGaloisGroup:
 
     def make_code_snippets(self):
         # read in code.yaml from galois_groups directory:
-        _curdir = os.path.dirname(os.path.abspath(__file__))
+        #_curdir = os.path.dirname(os.path.abspath(__file__))
         self.code = yaml.load(open(os.path.join(_curdir, "code.yaml")), Loader=yaml.FullLoader)
 
         for prop in ['gg', 'auts']:
