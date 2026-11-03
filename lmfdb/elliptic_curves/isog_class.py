@@ -1,3 +1,5 @@
+import os
+import yaml
 from flask import url_for
 from lmfdb.utils import make_graph, setup_isogeny_graph, prop_int_pretty, raw_typeset, integer_squarefree_part, list_to_factored_poly_otherorder
 from lmfdb.elliptic_curves.web_ec import split_lmfdb_label, split_cremona_label, OPTIMALITY_BOUND, CREMONA_BOUND
@@ -56,6 +58,24 @@ class ECisog_class():
             return ECisog_class(data)
         return "Class not found" # caller must catch this and raise an error
 
+    def make_code_snippets(self):
+        # read in code.yaml from current directory:
+        _curdir = os.path.dirname(os.path.abspath(__file__))
+        code = yaml.load(open(os.path.join(_curdir, "code.yaml")), Loader=yaml.FullLoader)
+
+        # We don't have Oscar code snippets for elliptic curve isog classes (for now)
+        code["prompt"].pop("oscar")
+
+        for lang in code["curve"]:
+            code["curve"][lang] = code["curve"][lang].format(**{'ainvs': self.ainvs})
+
+        # Create top code snippet to construct elliptic curve isogeny class
+        code["frontmatter"]["all"] = code["frontmatter"]["all"].replace("curve", "curve isogeny class")
+        for lang in code["isogeny_class"]:
+            if lang != "comment":
+                code["isogeny_class"][lang] = code["curve"][lang]+"\n"+code["isogeny_class"][lang]+"\n"
+        return code
+
     def make_class(self):
         # Extract the size of the isogeny class from the database
         classdata = db.ec_classdata.lucky({'lmfdb_iso': self.lmfdb_iso})
@@ -113,7 +133,7 @@ class ECisog_class():
         from sage.matrix.all import Matrix
         M = classdata['isogeny_matrix']
 
-        # permute rows/cols to match labelling: the rows/cols in the
+        # permute rows/cols to match labeling: the rows/cols in the
         # ec_classdata table are with respect to LMFDB ordering.
         if self.label_type == 'Cremona':
             def perm(i): return next(c for c in self.curves if c['Cnumber'] == i+1)['lmfdb_number']-1
@@ -155,7 +175,9 @@ class ECisog_class():
         if self.cm:
             # set CM field for Properties box.
             D = integer_squarefree_part(ZZ(self.cm))
-            coeffs = [(1-D)//4,-1,1] if D % 4 == 1 else [-D,0,1]
+            # int() everything so that the query list is not a mix of Sage Integers
+            # and Python ints, which psycopg cannot adapt
+            coeffs = [int((1-D)//4),-1,1] if D % 4 == 1 else [int(-D),0,1]
             lab = db.nf_fields.lucky({'coeffs': coeffs}, projection='label')
             self.CMfield = field_pretty(lab)
         else:
@@ -183,21 +205,16 @@ class ECisog_class():
         self.properties += [('Graph', ''), (None, self.graph_link)]
 
         self.downloads = [('q-expansion to text', url_for(".download_EC_qexp", label=self.lmfdb_iso, limit=1000)),
-                          ('All stored data to text', url_for(".download_EC_all", label=self.lmfdb_iso)),
-                          ('Underlying data', url_for(".EC_data", label=self.lmfdb_iso))]
+                          ('All stored data to text', url_for(".download_EC_all", label=self.lmfdb_iso))]
+        for lang in [("PariGP", "gp"), ("SageMath", "sage"), ("Magma", "magma")]:
+            self.downloads.append(('{} commands'.format(lang[0]), url_for(".ec_isog_code_download", conductor=self.conductor, iso=self.iso_label, label=self.lmfdb_iso, download_type=lang[1])))
+        self.downloads.append(('Underlying data', url_for(".EC_data", label=self.lmfdb_iso)))
 
-        self.bread = [('Elliptic curves', url_for("ecnf.index")),
-                      (r'$\Q$', url_for(".rational_elliptic_curves")),
+        self.bread = [(r'Elliptic curves over $\Q$', url_for(".rational_elliptic_curves")),
                       ('%s' % self.conductor, url_for(".by_conductor", conductor=self.conductor)),
                       ('%s' % self.iso_label, ' ')]
-        self.code = {}
-        self.code['show'] = {'sage':''} # use default show names
-        self.code['class'] = {'sage':'E = EllipticCurve(%s)\n' % (self.ainvs) + 'E.isogeny_class()\n'}
-        self.code['curves'] = {'sage':'E.isogeny_class().curves'}
-        self.code['rank'] = {'sage':'E.rank()'}
-        self.code['q_eigenform'] = {'sage':'E.q_eigenform(10)'}
-        self.code['matrix'] = {'sage':'E.isogeny_class().matrix()'}
-        self.code['plot'] = {'sage':'E.isogeny_graph().plot(edge_labels=True)'}
+
+        self.code = self.make_code_snippets()
 
         lfunc_url = self.lfunction_link
         origin_url = lfunc_url.lstrip('/L/').rstrip('/')

@@ -8,6 +8,47 @@ from flask import url_for
 import re
 
 from lmfdb import db
+from lmfdb.logger import logger
+
+
+###############################################################################
+# Belyi dessin images from belyi_galmap_dessins
+###############################################################################
+
+
+def _crop_svg_bottom(svg, crop_height=660):
+    # The page number sits at y≈702 in a 792-unit-tall viewBox.
+    # Fix: shrink the viewBox height AND the SVG height attribute proportionally,
+    # and set overflow="hidden" so nothing outside the viewBox leaks through.
+    # 1. Update viewBox height
+    svg = re.sub(
+        r'(viewBox=")(\S+\s+\S+\s+\S+\s+)\S+(")',
+        lambda m: m.group(1) + m.group(2) + str(crop_height) + m.group(3),
+        svg
+    )
+    # 2. Update the SVG height attribute proportionally (original viewBox height = 792)
+
+    def _new_height(m):
+        try:
+            orig = float(m.group(1))
+            new_h = round(orig * crop_height / 792)
+            return 'height="{}"'.format(new_h)
+        except ValueError:
+            return m.group(0)
+    svg = re.sub(r'height="([\d.]+)"', _new_height, svg, count=1)
+    # 3. Ensure the outermost <svg> tag has overflow="hidden" to clip below the viewBox
+    svg = re.sub(r'(<svg\b)(?![^>]*overflow)', r'\1 overflow="hidden"', svg, count=1)
+    return svg
+
+
+def get_belyi_images(label):
+    """Return the dessin SVGs for the galmap with this LMFDB label, one per embedding, or []."""
+    if "belyi_galmap_dessins" not in db.tablenames:
+        return []
+    svgs = db.belyi_galmap_dessins.lookup(label, "dessins")
+    if not svgs:
+        return []
+    return [_crop_svg_bottom(svg) for svg in svgs]
 
 
 ###############################################################################
@@ -299,6 +340,15 @@ class WebBelyiGalmap():
 
         if galmap.get('plane_map_constant_factored'):
             data['plane_map_constant_factored'] = galmap['plane_map_constant_factored']
+
+        data['dessin_svgs'] = get_belyi_images(galmap['label'])
+        n_svgs, n_embeddings = len(data['dessin_svgs']), len(data['embeddings_and_triples'])
+        if n_svgs and n_svgs != n_embeddings:
+            # the template indexes dessin_svgs by embedding position, so a list
+            # of the wrong length cannot be matched to the embeddings
+            logger.warning("Belyi galmap %s has %s dessin images but %s embeddings; not showing them",
+                           galmap['label'], n_svgs, n_embeddings)
+            data['dessin_svgs'] = []
 
         # Properties
         self.plot = db.belyi_galmap_portraits.lucky({"label": galmap['label']},

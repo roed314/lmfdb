@@ -28,6 +28,24 @@ from sage.all import Integer, Rational, lazy_attribute
 from lmfdb.utils import plural_form, pluralize, flash_error
 from lmfdb.utils.datetime_utils import utc_now_naive
 
+def send_file_from_beta(filepath, line_matcher, **kwds):
+    """
+    If running on beta.lmfdb.org, return the file as an attachment (potentially filtering lines).  Otherwise, return a redirect to the current URL on beta.
+    """
+    urlparts = urlparse(request.url)
+    if urlparts.netloc != "beta.lmfdb.org":
+        replaced = urlparts._replace(netloc="beta.lmfdb.org", scheme="https")
+        return redirect(urlunparse(replaced), code=301)
+    if line_matcher is None:
+        return send_file(filepath, **kwds)
+    bIO = BytesIO()
+    with open(filepath) as F:
+        for i, line in enumerate(F):
+            if line_matcher(i, line):
+                bIO.write(line.encode('utf-8'))
+    bIO.seek(0)
+    return send_file(bIO, **kwds)
+
 class DownloadLanguage():
     # We choose the most common values; override these if needed in each subclass
     comment_prefix = '#'
@@ -105,6 +123,13 @@ class DownloadLanguage():
         inp = inp.replace("\\", "\\\\").replace('"', '\\"')
         return '"{0}"'.format(inp)
 
+    def rational_to_lang(self, inp):
+        """
+        Override this function if plain fractions like -3/2 are not valid syntax
+        for exact rational numbers in this language.
+        """
+        return str(inp)
+
     def to_lang(self, inp, level=1):
         """
         Converts a python object into a string for use in the given language.  At a minimum,
@@ -118,7 +143,9 @@ class DownloadLanguage():
             return self.false
         if isinstance(inp, str):
             return self.string_to_lang(inp)
-        if isinstance(inp, (int, Integer, Rational)):
+        if isinstance(inp, Rational):
+            return self.rational_to_lang(inp)
+        if isinstance(inp, (int, Integer)):
             return str(inp)
         try:
             it = iter(inp)
@@ -301,6 +328,12 @@ class OscarLanguage(DownloadLanguage):
     make_data_comment = 'To create a list of {short_name}, type "{var_name} = make_data()"'
     function_start = 'function {func_name}({func_args})\n'
     function_end = 'end\n'
+
+    def rational_to_lang(self, inp):
+        # In Julia, -3/2 is floating point division; -3//2 is the exact rational
+        if inp.denominator() == 1:
+            return str(inp)
+        return "%s//%s" % (inp.numerator(), inp.denominator())
 
     def initialize(self, cols, downloader):
         from lmfdb.number_fields.number_field import PolynomialCol
