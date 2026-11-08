@@ -33,6 +33,21 @@ def pretty_document(rec, sep=", ", id=True):
     return "{" + sep.join("'%s': %s" % attr for attr in attrs) + "}"
 
 
+def schema_example(value, typ, max_len=100):
+    """
+    String representation of one value from a random row, truncated
+    for display in the Example column of the schema table.
+    """
+    if value is None:
+        return ""
+    if typ == "bytea" or isinstance(value, buffer):
+        return "[binary data]"
+    value = str(quote_string(value))
+    if len(value) > max_len:
+        value = value[:max_len] + "..."
+    return value
+
+
 def hidden_collection(c):
     """
     hide some collections from the main page (still available via direct requests)
@@ -159,7 +174,7 @@ def stats():
 
 @api_page.route("/<table>/<id>")
 def api_query_id(table, id):
-    if id == 'schema':
+    if id == 'schema' and table in db.tablenames:
         out = ''
         table = getattr(db, table)
         col_type = table.col_type
@@ -211,10 +226,9 @@ def api_query(table, id=None):
         return apierror("offset %s too large, please refine your query.", [offset])
 
     # preparing the actual database query q
-    try:
-        coll = getattr(db, table)
-    except AttributeError:
+    if table not in db.tablenames:
         return apierror("table %s does not exist", [table], table=False)
+    coll = getattr(db, table)
     q = {}
 
     # if id is set, just go and get it, ignore query parameters
@@ -351,14 +365,26 @@ def api_query(table, id=None):
         title = "Database - " + location
         bc = [("Database", url_for(".index")), (table,)]
         query_unquote = unquote(data["query"])
-        description = coll.description()
-        if description:
-            title += " (%s)" % description
+        # The table description (the tables.<name> knowl) is displayed by
+        # collection.html rather than being appended to the title
+        try:
+            # projection=3 selects every search and extra column (plus id),
+            # the same full mask the datapage query below uses, so the Example
+            # column can be populated for every row shown in the schema table.
+            example = coll.random(projection=3)
+        except Exception:
+            example = None
+        if example is None:
+            examples = {}
+        else:
+            examples = {table: {col: schema_example(example.get(col), typ)
+                                for col, typ in coll.col_type.items()}}
         search_schema = [(col, coll.col_type[col])
                          for col in sorted(coll.search_cols)]
         return render_template("collection.html",
                                title=title,
                                search_schema={table: search_schema},
+                               examples=examples,
                                single_object=single_object,
                                query_unquote=query_unquote,
                                url_args=url_args,
