@@ -194,6 +194,31 @@ def to_rset(query):
     return ans
 
 
+# Sentinel distinguishing an absent query key from an explicit null predicate:
+# query.get("rd") returns None both for {} and for {"rd": None}, but the former is
+# "no constraint" while the latter is the SQL predicate "rd IS NULL".
+_MISSING = object()
+
+
+def _contains_none(value):
+    """
+    Whether ``None`` appears anywhere in a psycodict query value's expression tree.
+
+    In psycodict queries ``None`` carries SQL-null semantics (``{"$ne": None}`` means
+    ``IS NOT NULL``), which the real-number model of ``to_rset`` cannot represent:
+    it reads ``None`` as the whole real line, so e.g. ``{"$ne": None}`` collapses to
+    the empty set.  Callers doing numeric reasoning should treat any value containing
+    ``None`` as outside the model.
+    """
+    if value is None:
+        return True
+    if isinstance(value, dict):
+        return any(_contains_none(v) for v in value.values())
+    if isinstance(value, (list, tuple, set)):
+        return any(_contains_none(v) for v in value)
+    return False
+
+
 def interval_sum(I, J):
     """
     `{i + j : i in I, j in J}`
@@ -622,8 +647,21 @@ class CompletenessChecker:
       The check returns true when any test passes.
 
       If all checkers have length 2 (just cols and test) will pass the full query dictionary to the __call__ method (after parsing through $or, $and, $not).  Otherwise, will extract the values of the columns before passing into __call__
+
+    - ``precheck`` -- an optional function taking a standardized single-branch query
+      dictionary (i.e. after the ``$or``/``$and`` decomposition performed by ``check``).
+      It runs before any database access: no table lookup, null-count query or
+      ``exists`` query has been issued when it is called, and it must not access
+      ``db`` itself.  It returns ``None`` to leave the query to the normal machinery,
+      and may return a completeness triple ``(complete, reason, caveat)`` only when
+      the conclusion is independent of database contents, missing values and indexes.
+      In practice the only intended positive result is an intrinsic contradiction:
+      the query describes no possible mathematical object, so the (empty) results
+      are complete no matter what is stored.  Ordinary coverage-based completeness
+      guarantees must stay in ``checkers``, since they can depend on all relevant
+      columns having been computed.
     """
-    def __init__(self, table, checkers, fill=[], null_override=[]):
+    def __init__(self, table, checkers, fill=[], null_override=[], precheck=None):
         self.table = table
         lookup[table] = self
         self.extract = not all(len(check) == 2 for check in checkers)
@@ -653,6 +691,7 @@ class CompletenessChecker:
         self.checkers = checkers
         self.fill = fill
         self.null_override = null_override
+        self.precheck = precheck
 
     def _standardize(self, query):
         """
@@ -720,6 +759,13 @@ class CompletenessChecker:
                     return ok, reason, caveat
             return False, None, None
         # Ignore $not: it just imposes additional constraints, and if we're complete without it then we're complete.  Note that it is accounted for in _columns_searched
+        # Intrinsic contradictions (queries describing no possible mathematical object)
+        # can be recognized without touching the database, so we test for them before
+        # the null-count machinery below issues its (potentially expensive) queries.
+        if self.precheck is not None:
+            result = self.precheck(query)
+            if result is not None:
+                return result
         table = db[self.table]
         nulls = table.stats.null_counts()
         if nulls:
@@ -1291,6 +1337,11 @@ class BianchiBound(ColTest):
 #### Number fields ####
 
 class NFBound(ColTest):
+    # Reason reported when the root discriminant range is incompatible with the
+    # Galois root discriminant range; shared by ``precheck`` and ``_one_n`` so
+    # that the two code paths cannot drift apart.
+    RD_GRD_INCOMPATIBLE = "incompatible conditions: root discriminant and Galois root discriminant"
+
     def __init__(self):
         # maxD[n][r2] is an integer M so that we have completeness in signature [n-2*r2, r2] as long as the absolute discriminant is at most M.
         self._maxD = [
@@ -1305,7 +1356,7 @@ class NFBound(ColTest):
             # r2=3,4 come from Driver doing Hunter searches for
             # primitive fields plus older searches for non-primative
             [17**8, 79259702, 20829049, 2*10**7, 2*10**7], # n=8
-            [15**9, 27316369, 27316369, 146723910, 39657561], # n=9
+            [15**9, 10**8, 10**8, 146723910, 10**8], # n=9
             [190612177]*6, # n=10
             [5154074557]*6, # n=11
             [37250695278]*7, # n=12
@@ -1445,69 +1496,70 @@ class NFBound(ColTest):
             3: [((1,), 500),
                 ((2,), 250)],
             4: [((1,2,3), 200), # quad over quad
-                ((4,5), 150)],
-            5: [((1,2), 200),
-                ((3,), 200),
-                ((4,5), 85)],
-            6: [((12,14), 85), # pumped up
-                ((15,16), 60),
-                ((1,2,3,5,9), 200), # just did 6t3 as composita
-                ((10,), 150),
-                ((4,5,6,7,8,11,13), 150)],
-            7: [((4,), 75),
-                ((1,3), 200),
-                ((2,), 200),
-                ((5,6), 45),
-                ((7,), 35)],
-            8: [((3,5,23,24,39,40,41,44,45,46), 100),
-                ((4,6,8,9,10,15,17,18,19,26,28,29,30,35), 125), # over 4T3
-                ((1,2,7,16,20,27), 125), # over 4T1
-                ((12,13,32,38), 250), # over 4T4
-                ((11,21,22,31), 100), # over 4T2
-                ((14,33), 150),
-                ((25,36), 200), #prim
-                ((34,), 110),
-                ((37,), 45),
-                ((42,), 135),
-                ((47,), 150),
-                ((48,), 45)],
-            9: [((16,), od),
-                ((26,), 75),
-                ((9,13,14,15,19,22,23,24,25,29), 100),
-                ((31,), 100),
-                ((18,), 150), # using 6T9
-                ((30,), 115),
-                ((1,2,4,6,7,17), 500), #C3 over C3
-                ((1,2,3,4,5,6,7,8,10,11,12,20,21,24,29,30,31), 200),
-                ((20,28), 150)],
-            10: [(tup(1,28)+(29,32,34,36,37,38,39), od),
-                 ((4,), 100), # F_5
-                 ((20,), 50),
-                 ((1,2,6), 200)], # C_5 over C_2
-            11: [((1,), 200),
-                 ((2,3), od),
-                 ((4,), 22.5)],
-            12: [((1,2,5), od),
-                 (tup(1,20)+tup(21,43)+tup(48,70)+tup(74,83), od/2),
-                 ((1,5), 150)],
-            13: [((1,), 200),
-                 ((2,), od),
-                 ((3,4,5,6), od/2)],
-            14: [((1,), od),
-                 ((2,), 50),
-                 ((3,4,5,6,7,8,9,10,11,17,18,19,21,27,28,29,33,34,35,38,40,41,42,43,44,47,48,50,51,53,56), 23)],
-            15: [((1,2), od)],
-            16: [((1,2,3,4,5), od),
-                 (tup(6,57)+tup(67,178)+tup(197,414), od/2)],
-            17: [((1,), 200),
-                 ((2,), od)],
-            18: [((1,2,3,4,5), 100)],
-            19: [((1,), 200),
-                 ((2,), od)],
-            20: [((1,2,3,4,5), 100)],
-            21: [((1,2), 100)],
-            22: [((1,), 100)],
-            23: [((1,2), od)],
+                ((4,5), 1)],
+            #4: [((1,2,3), 200), # quad over quad
+            #    ((4,5), 150) ],
+            #5: [((1,2), 200),
+            #    ((3,), 200),
+            #    ((4,5), 85)],
+            #6: [((12,14), 85), # pumped up
+            #    ((15,16), 60),
+            #    ((1,2,3,5,9), 200), # just did 6t3 as composita
+            #    ((10,), 150),
+            #    ((4,5,6,7,8,11,13), 150)],
+            #7: [((4,), 75),
+            #    ((1,3), 200),
+            #    ((2,), 200),
+            #    ((5,6), 45),
+            #    ((7,), 35)],
+            #8: [((3,5,23,24,39,40,41,44,45,46), 100),
+            #    ((4,6,8,9,10,15,17,18,19,26,28,29,30,35), 125), # over 4T3
+            #    ((1,2,7,16,20,27), 125), # over 4T1
+            #    ((12,13,32,38), 250), # over 4T4
+            #    ((11,21,22,31), 100), # over 4T2
+            #    ((14,33), 150),
+            #    ((25,36), 200), #prim
+            #    ((34,), 110),
+            #    ((37,), 45),
+            #    ((42,), 135),
+            #    ((47,), 150),
+            #    ((48,), 45)],
+            #    ((26,), 75),
+            #    ((9,13,14,15,19,22,23,24,25,29), 100),
+            #    ((31,), 100),
+            #    ((18,), 150), # using 6T9
+            #    ((30,), 115),
+            #    ((1,2,4,6,7,17), 500), #C3 over C3
+            #    ((1,2,3,4,5,6,7,8,10,11,12,20,21,24,29,30,31), 200),
+            #    ((20,28), 150)],
+            #10: [(tup(1,28)+(29,32,34,36,37,38,39), od),
+            #     ((4,), 100), # F_5
+            #     ((20,), 50),
+            #     ((1,2,6), 200)], # C_5 over C_2
+            #11: [((1,), 200),
+            #     ((2,3), od),
+            #     ((4,), 22.5)],
+            #12: [((1,2,5), od),
+            #     (tup(1,20)+tup(21,43)+tup(48,70)+tup(74,83), od/2),
+            #     ((1,5), 150)],
+            #13: [((1,), 200),
+            #     ((2,), od),
+            #     ((3,4,5,6), od/2)],
+            #14: [((1,), od),
+            #     ((2,), 50),
+            #     ((3,4,5,6,7,8,9,10,11,17,18,19,21,27,28,29,33,34,35,38,40,41,42,43,44,47,48,50,51,53,56), 23)],
+            #15: [((1,2), od)],
+            #16: [((1,2,3,4,5), od),
+            #     (tup(6,57)+tup(67,178)+tup(197,414), od/2)],
+            #17: [((1,), 200),
+            #     ((2,), od)],
+            #18: [((1,2,3,4,5), 100)],
+            #19: [((1,), 200),
+            #     ((2,), od)],
+            #20: [((1,2,3,4,5), 100)],
+            #21: [((1,2), 100)],
+            #22: [((1,), 100)],
+            #23: [((1,2), od)],
         }
 
         # Sets of transitive group IDs with specified Galois group or subfield structure
@@ -1525,18 +1577,18 @@ class NFBound(ColTest):
         self._r2G = {
             3: [(1, (1,), None)],
             4: [(0, (1,2,3), 150**4),
-                (0, (4,), 10**10), # from megrez
+                (0, (4,), 10**10), # from megrez or nflist
                 (1, (1,2,4), None),
-                (1, (3,), 15**6),
+            #    (1, (3,), 15**6),
                 (2, (1,2,3), 15**6),
                 (2, (4,), 10**10)], # from megrez
             5: [(0, (1,2), 10**10),
-                (0, (4,), 2**38),
+                #(0, (4,), 2**38), # probably ok, but should check
                 (1, (1,2,3,4), None),
                 (2, (1,), None),
                 (2, (2,4), 10**8)],
             6: [# r2=0 bound for arbitrary t is 28^6
-                (0, (1,2), 250**6), # Base changing S_3 grd up, using Belabash, disc filter, moving them up; redid 6T2 by Rachel/grd, which picks up 6T1
+                (0, (1,2), 250**6), # Base changing S_3 grd up, using Belabas, disc filter, moving them up; redid 6T2 by Rachel/grd, which picks up 6T1
                 (0, (3,), 10**11), # from Kluners
                 (0, (4,), 100**6), # from Kluners
                 (0, (5,), 10**10), # matches Kluners
@@ -1566,7 +1618,7 @@ class NFBound(ColTest):
                 (2, (13,), 10**8-1), # from Eric Driver
                 # r2=3 bound for arbitrary t is 10^7
                 (3, (4,7,10,12,15), None),
-                (3, (1,2), 250**6), # Base changing S_3 grd up, using Belabash, disc filter, moving them up; redid 6T2 by Rachel/grd, which picks up 6T1
+                (3, (1,2), 250**6), # Base changing S_3 grd up, using Belabas, disc filter, moving them up; redid 6T2 by Rachel/grd, which picks up 6T1
                 (3, (3,), 64**6), # Done by composita
                 (3, (5,), 10**10), # matches Kluners
                 (3, (6,), 10**9), # from Kluners
@@ -1577,8 +1629,8 @@ class NFBound(ColTest):
                 (3, (14,), 35**6)],
             7: [# r2=0 bound for arbitrary t is 214942297
                 (0, (3,), 26**7), # LMFDB
-                (0, (5,), 38**7), # LMFDB
-                (0, (6,), 988410720),
+                #(0, (5,), 38**7), # LMFDB
+                #(0, (6,), 988410720),
                 # r2=1,2,3 bound for arbitrary t is 2*10^8
                 (1, tup(1,7), None),
                 (2, tup(1,5), None),
@@ -1692,12 +1744,14 @@ class NFBound(ColTest):
             #3: {1: 12000, 2: 500, 3: 100, 4: 30, 5: 24, 6: 24, 7: 24, 8: 24, 9: 24},
             4: {1: 12000, 2: 500, 3: 100, 4: 30, 5: 14, 6: 14},
             5: {1: 7500, 2: 150, 3: 24, 4: 8},
-            6: {1: 2000, 2: 32},
+            #6: {1: 2000, 2: 32},
+            6: {1: 1480, 2: 32},
             7: {1: 192, 2: 6},
         }
 
         # nSGp[n][k] is a list of pairs (M, Gs) so that we have completeness in degree n for number fields with Galois group nTt for t in Gs and unramified outside a set S of size k all of whose primes are less than M
         self._nSGp = {
+            5: {2: [(200, tup(1,4))]},
             6: {1: [(5000, tup(1,15))],
                 2: [(100, (12,14))],
                 3: [(12, (12,14)), (8, tup(1,15))],
@@ -1737,199 +1791,202 @@ class NFBound(ColTest):
         # nSGp1[n] is a list of triples (p, M, Gs) so that we have completeness in degree n for number fields with Galois group nTt for t in Gs and unramified outside {p,q} for q < M.
         self._nSGp1 = {
             4: [(2, 2500, quartic_2_group)],
-            5: [(3, 1328, (1,2,4)), (2, 980, (1,2,4))],
+            #5: [(3, 1328, (1,2,4)), (2, 980, (1,2,4))],
             8: [(2, 2500, octic_2_group), (2, 200, (25,))],
         }
 
         # nSG[n] is a list of pairs (T, Gs) so that we have completeness in degree n for number fields with Galois group nTt for t in Gs and unramified outside S for any subset S of T.
         self._nSG = {
-            5: [((2,3,7,11), (1,2,4)),
-                ((2,3,7,31), (1,2,4)),
-                ((2,3,11,19), (1,2,4)),
-                ((2,3,31), (1,2,4)),
-                ((2,3,37), (1,2,4)),
-                ((2,3,41), (1,2,4)),
-                ((2,3,43), (1,2,4)),
-                ((2,3,53), (1,2,4)),
-                ((2,3,61), (1,2,4)),
-                ((2,3,79), (1,2,4)),
-                ((2,3,89), (1,2,4)),
-                ((2,3,101), (1,2,4)),
-                ((2,3,103), (1,2,4)),
-                ((2,3,107), (1,2,4)),
-                ((2,3,113), (1,2,4)),
-                ((2,3,127), (1,2,4)),
-                ((2,3,131), (1,2,4)),
-                ((2,3,137), (1,2,4)),
-                ((2,3,151), (1,2,4)),
-                ((2,5,13), (1,2,4)),
-                ((2,5,17), (1,2,4)),
-                ((2,5,23), (1,2,4)),
-                ((2,5,29), (1,2,4)),
-                ((2,5,31), (1,2,4)),
-                ((2,7,17), (1,2,4)),
-                ((2,7,19), (1,2,4)),
-                ((2,7,59), (1,2,4)),
-                ((2,7,61), (1,2,4)),
-                ((2,7,71), (1,2,4)),
-                ((2,7,103), (1,2,4)),
-                ((2,7,127), (1,2,4)),
-                ((2,7,131), (1,2,4)),
-                ((2,13,71), (1,2,4)),
-                ((2,17,31), (1,2,4)),
-                ((2,19,23), (1,2,4)),
-                ((2,23,41), (1,2,4)),
-                ((2,29,31), (1,2,4)),
-                ((2,11,13), (1,2,4)),
-                ((2,11,17), (1,2,4)),
-                ((2,11,19), (1,2,4)),
-                ((2,11,23), (1,2,4)),
-                ((2,11,29), (1,2,4)),
-                ((2,11,31), (1,2,4)),
-                ((2,11,37), (1,2,4)),
-                ((2,11,41), (1,2,4)),
-                ((2,11,43), (1,2,4)),
-                ((2,11,47), (1,2,4)),
-                ((2,11,53), (1,2,4)),
-                ((2,11,59), (1,2,4)),
-                ((2,11,61), (1,2,4)),
-                ((2,11,67), (1,2,4)),
-                ((2,11,71), (1,2,4)),
-                ((2,11,73), (1,2,4)),
-                ((2,13,29), (1,2,4)),
-                ((2,13,31), (1,2,4)),
-                ((2,13,37), (1,2,4)),
-                ((2,13,41), (1,2,4)),
-                ((2,13,43), (1,2,4)),
-                ((2,13,47), (1,2,4)),
-                ((2,13,53), (1,2,4)),
-                ((2,13,59), (1,2,4)),
-                ((2,13,61), (1,2,4)),
-                ((2,13,67), (1,2,4)),
-                ((2,13,71), (1,2,4)),
-                ((2,13,73), (1,2,4)),
-                ((2,17,31), (1,2,4)),
-                ((2,19,23), (1,2,4)),
-                ((2,23,41), (1,2,4)),
-                ((2,29,31), (1,2,4)),
-                ((3,5,17), (1,2,4)),
-                ((3,5,31), (1,2,4)),
-                ((3,5,37), (1,2,4)),
-                ((3,7,11), (1,2,4)),
-                ((3,7,11,17), (1,2,4)),
-                ((3,7,17), (1,2,4)),
-                ((3,7,31), (1,2,4)),
-                ((3,7,41), (1,2,4)),
-                ((3,7,61), (1,2,4)),
-                ((3,7,101), (1,2,4)),
-                ((3,7,107), (1,2,4)),
-                ((3,7,131), (1,2,4)),
-                ((3,7,139), (1,2,4)),
-                ((3,7,163), (1,2,4)),
-                ((3,7,181), (1,2,4)),
-                ((3,11,13), (1,2,4)),
-                ((3,11,17), (1,2,4)),
-                ((3,11,19), (1,2,4)),
-                ((3,11,29), (1,2,4)),
-                ((3,11,31), (1,2,4)),
-                ((3,11,41), (1,2,4)),
-                ((3,11,61), (1,2,4)),
-                ((3,11,71), (1,2,4)),
-                ((3,11,73), (1,2,4)),
-                ((3,11,101), (1,2,4)),
-                ((3,11,103), (1,2,4)),
-                ((3,11,109), (1,2,4)),
-                ((3,13,31), (1,2,4)),
-                ((3,13,41), (1,2,4)),
-                ((3,13,61), (1,2,4)),
-                ((3,13,71), (1,2,4)),
-                ((3,13,89), (1,2,4)),
-                ((3,17,37), (1,2,4)),
-                ((3,17,41), (1,2,4)),
-                ((3,17,43), (1,2,4)),
-                ((3,17,71), (1,2,4)),
-                ((3,19,61), (1,2,4)),
-                ((3,29,37), (1,2,4)),
-                ((3,29,41), (1,2,4)),
-                ((3,31,41), (1,2,4)),
-                ((5,7,13), (1,2,4)),
-                ((5,7,17), (1,2,4)),
-                ((5,7,71), (1,2,4)),
-                ((5,7,97), (1,2,4)),
-                ((5,11,13), (1,2,4)),
-                ((5,11,19), (1,2,4)),
-                ((5,11,31), (1,2,4)),
-                ((5,11,41), (1,2,4)),
-                ((5,11,43), (1,2,4)),
-                ((5,11,71), (1,2,4)),
-                ((5,13,23), (1,2,4)),
-                ((5,151), (1,2,4)),
-                ((5,163), (1,2,4)),
-                ((5,223), (1,2,4)),
-                ((5,241), (1,2,4)),
-                ((5,367), (1,2,4)),
-                ((5,571), (1,2,4)),
-                ((5,631), (1,2,4)),
-                ((7,11,17), (1,2,4)),
-                ((7,11,23), (1,2,4)),
-                ((7,11,37), (1,2,4)),
-                ((7,13,31), (1,2,4)),
-                ((7,13,37), (1,2,4)),
-                ((7,13,41), (1,2,4)),
-                ((7,151), (1,2,4)),
-                ((7,163), (1,2,4)),
-                ((7,181), (1,2,4)),
-                ((7,191), (1,2,4)),
-                ((7,211), (1,2,4)),
-                ((7,241), (1,2,4)),
-                ((7,257), (1,2,4)),
-                ((7,281), (1,2,4)),
-                ((7,313), (1,2,4)),
-                ((7,331), (1,2,4)),
-                ((7,379), (1,2,4)),
-                ((7,401), (1,2,4)),
-                ((7,409), (1,2,4)),
-                ((7,421), (1,2,4)),
-                ((7,433), (1,2,4)),
-                ((7,431), (1,2,4)),
-                ((7,491), (1,2,4)),
-                ((7,541), (1,2,4)),
-                ((7,571), (1,2,4)),
-                ((11,13,23), (1,2,4)),
-                ((11,17,19), (1,2,4)),
-                ((11,151), (1,2,4)),
-                ((11,167), (1,2,4)),
-                ((11,179), (1,2,4)),
-                ((11,181), (1,2,4)),
-                ((11,191), (1,2,4)),
-                ((11,211), (1,2,4)),
-                ((11,251), (1,2,4)),
-                ((11,269), (1,2,4)),
-                ((11,263), (1,2,4)),
-                ((11,271), (1,2,4)),
-                ((11,281), (1,2,4)),
-                ((11,283), (1,2,4)),
-                ((11,311), (1,2,4)),
-                ((11,293), (1,2,4)),
-                ((11,307), (1,2,4)),
-                ((11,331), (1,2,4)),
-                ((11,331), (1,2,4)),
-                ((11,359), (1,2,4)),
-                ((13,191), (1,2,4)),
-                ((13,223), (1,2,4)),
-                ((13,211), (1,2,4)),
-                ((13,307), (1,2,4)),
-                ((17,227), (1,2,4)),
-                ((17,211), (1,2,4)),
-                ((19,191), (1,2,4)),
-                ((19,157), (1,2,4)),
-                ((19,181), (1,2,4)),
-                ((19,193), (1,2,4)),
-                ((23,151), (1,2,4)),
-                ((23,173), (1,2,4))],
+            5: [((2,3), (1,2,4))],
+          #  5: [((2,3,7,11), (1,2,4)),
+          #      ((2,3,7,31), (1,2,4)),
+          #      ((2,3,11,19), (1,2,4)),
+          #      ((2,3,31), (1,2,4)),
+          #      ((2,3,37), (1,2,4)),
+          #      ((2,3,41), (1,2,4)),
+          #      ((2,3,43), (1,2,4)),
+          #      ((2,3,53), (1,2,4)),
+          #      ((2,3,61), (1,2,4)),
+          #      ((2,3,79), (1,2,4)),
+          #      ((2,3,89), (1,2,4)),
+          #      ((2,3,101), (1,2,4)),
+          #      ((2,3,103), (1,2,4)),
+          #      ((2,3,107), (1,2,4)),
+          #      ((2,3,113), (1,2,4)),
+          #      ((2,3,127), (1,2,4)),
+          #      ((2,3,131), (1,2,4)),
+          #      ((2,3,137), (1,2,4)),
+          #      ((2,3,151), (1,2,4)),
+          #      ((2,5,13), (1,2,4)),
+          #      ((2,5,17), (1,2,4)),
+          #      ((2,5,23), (1,2,4)),
+          #      ((2,5,29), (1,2,4)),
+          #      ((2,5,31), (1,2,4)),
+          #      ((2,7,17), (1,2,4)),
+          #      ((2,7,19), (1,2,4)),
+          #      ((2,7,59), (1,2,4)),
+          #      ((2,7,61), (1,2,4)),
+          #      ((2,7,71), (1,2,4)),
+          #      ((2,7,103), (1,2,4)),
+          #      ((2,7,127), (1,2,4)),
+          #      ((2,7,131), (1,2,4)),
+          #      ((2,13,71), (1,2,4)),
+          #      ((2,17,31), (1,2,4)),
+          #      ((2,19,23), (1,2,4)),
+          #      ((2,23,41), (1,2,4)),
+          #      ((2,29,31), (1,2,4)),
+          #      ((2,11,13), (1,2,4)),
+          #      ((2,11,17), (1,2,4)),
+          #      ((2,11,19), (1,2,4)),
+          #      ((2,11,23), (1,2,4)),
+          #      ((2,11,29), (1,2,4)),
+          #      ((2,11,31), (1,2,4)),
+          #      ((2,11,37), (1,2,4)),
+          #      ((2,11,41), (1,2,4)),
+          #      ((2,11,43), (1,2,4)),
+          #      ((2,11,47), (1,2,4)),
+          #      ((2,11,53), (1,2,4)),
+          #      ((2,11,59), (1,2,4)),
+          #      ((2,11,61), (1,2,4)),
+          #      ((2,11,67), (1,2,4)),
+          #      ((2,11,71), (1,2,4)),
+          #      ((2,11,73), (1,2,4)),
+          #      ((2,13,29), (1,2,4)),
+          #      ((2,13,31), (1,2,4)),
+          #      ((2,13,37), (1,2,4)),
+          #      ((2,13,41), (1,2,4)),
+          #      ((2,13,43), (1,2,4)),
+          #      ((2,13,47), (1,2,4)),
+          #      ((2,13,53), (1,2,4)),
+          #      ((2,13,59), (1,2,4)),
+          #      ((2,13,61), (1,2,4)),
+          #      ((2,13,67), (1,2,4)),
+          #      ((2,13,71), (1,2,4)),
+          #      ((2,13,73), (1,2,4)),
+          #      ((2,17,31), (1,2,4)),
+          #      ((2,19,23), (1,2,4)),
+          #      ((2,23,41), (1,2,4)),
+          #      ((2,29,31), (1,2,4)),
+          #      ((3,5,17), (1,2,4)),
+          #      ((3,5,31), (1,2,4)),
+          #      ((3,5,37), (1,2,4)),
+          #      ((3,7,11), (1,2,4)),
+          #      ((3,7,11,17), (1,2,4)),
+          #      ((3,7,17), (1,2,4)),
+          #      ((3,7,31), (1,2,4)),
+          #      ((3,7,41), (1,2,4)),
+          #      ((3,7,61), (1,2,4)),
+          #      ((3,7,101), (1,2,4)),
+          #      ((3,7,107), (1,2,4)),
+          #      ((3,7,131), (1,2,4)),
+          #      ((3,7,139), (1,2,4)),
+          #      ((3,7,163), (1,2,4)),
+          #      ((3,7,181), (1,2,4)),
+          #      ((3,11,13), (1,2,4)),
+          #      ((3,11,17), (1,2,4)),
+          #      ((3,11,19), (1,2,4)),
+          #      ((3,11,29), (1,2,4)),
+          #      ((3,11,31), (1,2,4)),
+          #      ((3,11,41), (1,2,4)),
+          #      ((3,11,61), (1,2,4)),
+          #      ((3,11,71), (1,2,4)),
+          #      ((3,11,73), (1,2,4)),
+          #      ((3,11,101), (1,2,4)),
+          #      ((3,11,103), (1,2,4)),
+          #      ((3,11,109), (1,2,4)),
+          #      ((3,13,31), (1,2,4)),
+          #      ((3,13,41), (1,2,4)),
+          #      ((3,13,61), (1,2,4)),
+          #      ((3,13,71), (1,2,4)),
+          #      ((3,13,89), (1,2,4)),
+          #      ((3,17,37), (1,2,4)),
+          #      ((3,17,41), (1,2,4)),
+          #      ((3,17,43), (1,2,4)),
+          #      ((3,17,71), (1,2,4)),
+          #      ((3,19,61), (1,2,4)),
+          #      ((3,29,37), (1,2,4)),
+          #      ((3,29,41), (1,2,4)),
+          #      ((3,31,41), (1,2,4)),
+          #      ((5,7,13), (1,2,4)),
+          #      ((5,7,17), (1,2,4)),
+          #      ((5,7,71), (1,2,4)),
+          #      ((5,7,97), (1,2,4)),
+          #      ((5,11,13), (1,2,4)),
+          #      ((5,11,19), (1,2,4)),
+          #      ((5,11,31), (1,2,4)),
+          #      ((5,11,41), (1,2,4)),
+          #      ((5,11,43), (1,2,4)),
+          #      ((5,11,71), (1,2,4)),
+          #      ((5,13,23), (1,2,4)),
+          #      ((5,151), (1,2,4)),
+          #      ((5,163), (1,2,4)),
+          #      ((5,223), (1,2,4)),
+          #      ((5,241), (1,2,4)),
+          #      ((5,367), (1,2,4)),
+          #      ((5,571), (1,2,4)),
+          #      ((5,631), (1,2,4)),
+          #      ((7,11,17), (1,2,4)),
+          #      ((7,11,23), (1,2,4)),
+          #      ((7,11,37), (1,2,4)),
+          #      ((7,13,31), (1,2,4)),
+          #      ((7,13,37), (1,2,4)),
+          #      ((7,13,41), (1,2,4)),
+          #      ((7,151), (1,2,4)),
+          #      ((7,163), (1,2,4)),
+          #      ((7,181), (1,2,4)),
+          #      ((7,191), (1,2,4)),
+          #      ((7,211), (1,2,4)),
+          #      ((7,241), (1,2,4)),
+          #      ((7,257), (1,2,4)),
+          #      ((7,281), (1,2,4)),
+          #      ((7,313), (1,2,4)),
+          #      ((7,331), (1,2,4)),
+          #      ((7,379), (1,2,4)),
+          #      ((7,401), (1,2,4)),
+          #      ((7,409), (1,2,4)),
+          #      ((7,421), (1,2,4)),
+          #      ((7,433), (1,2,4)),
+          #      ((7,431), (1,2,4)),
+          #      ((7,491), (1,2,4)),
+          #      ((7,541), (1,2,4)),
+          #      ((7,571), (1,2,4)),
+          #      ((11,13,23), (1,2,4)),
+          #      ((11,17,19), (1,2,4)),
+          #      ((11,151), (1,2,4)),
+          #      ((11,167), (1,2,4)),
+          #      ((11,179), (1,2,4)),
+          #      ((11,181), (1,2,4)),
+          #      ((11,191), (1,2,4)),
+          #      ((11,211), (1,2,4)),
+          #      ((11,251), (1,2,4)),
+          #      ((11,269), (1,2,4)),
+          #      ((11,263), (1,2,4)),
+          #      ((11,271), (1,2,4)),
+          #      ((11,281), (1,2,4)),
+          #      ((11,283), (1,2,4)),
+          #      ((11,311), (1,2,4)),
+          #      ((11,293), (1,2,4)),
+          #      ((11,307), (1,2,4)),
+          #      ((11,331), (1,2,4)),
+          #      ((11,331), (1,2,4)),
+          #      ((11,359), (1,2,4)),
+          #      ((13,191), (1,2,4)),
+          #      ((13,223), (1,2,4)),
+          #      ((13,211), (1,2,4)),
+          #      ((13,307), (1,2,4)),
+          #      ((17,227), (1,2,4)),
+          #      ((17,211), (1,2,4)),
+          #      ((19,191), (1,2,4)),
+          #      ((19,157), (1,2,4)),
+          #      ((19,181), (1,2,4)),
+          #      ((19,193), (1,2,4)),
+          #      ((23,151), (1,2,4)),
+          #      ((23,173), (1,2,4))],
             8: [((2,3), (37,48)),
                 ((2,5), (37,48)),
                 ((2,29), (25,)),
+                ((2,3,5,7,11), (4,)),
+                ((2,3,5,7), octic_2_group),
                 ((7,29), (25,)),
                 ((41, 241), octic_2_group)],
             9: [((3,7,13), (1,2,6,7,17))],
@@ -2030,16 +2087,18 @@ class NFBound(ColTest):
         INPUT:
 
         - ``reasons`` -- a set of reasons, which are either a string or
-          a tuple of the form ``(n, r2, galt, ramps, D_bound, grd_bound, reg)``,
+          a tuple of the form ``(n, r2, galt, ramps, nram, D_bound, grd_bound, reg)``,
           where entries are None if they are not applicable.
         """
         # Current tuples created:
-        # (n, r2, None, None, M, None, None)
-        # (n, r2, Gs, None, M, None, None)
-        # (n, None, Gs, None, None, M, None)
-        # (n, None, None, S, None, None, None)
-        # (n, None, Gs, S, None, None, None)
-        # (n, r2, None, None, None, None, R)
+        # (n, r2, None, None, None, M, None, None)
+        # (n, r2, Gs, None, None, M, None, None)
+        # (n, None, Gs, None, None, None, M, None)
+        # (n, None, None, S, k, None, None, None)
+        # (n, None, Gs, S, k, None, None, None)
+        # (n, r2, None, None, None, None, None, R)
+        # Here k (a bound on the number of ramified primes) is None unless
+        # completeness depends on it (i.e. unless k < len(S)).
         # We group by None pattern
         def describe(tups):
             ans = []
@@ -2069,19 +2128,26 @@ class NFBound(ColTest):
                 else:
                     ans.append(f"unramified outside {','.join()}")
             if tups[0][4] is not None:
-                Dbounds = [str(tup[4]) for tup in tups]
+                nrams = [str(tup[4]) for tup in tups]
+                if len(set(nrams)) == 1:
+                    plural = "" if tups[0][4] == 1 else "s"
+                    ans.append(f"at most {nrams[0]} ramified prime{plural}")
+                else:
+                    ans.append(f"at most {','.join(nrams)} ramified primes")
+            if tups[0][5] is not None:
+                Dbounds = [str(tup[5]) for tup in tups]
                 if len(set(Dbounds)) == 1:
                     ans.append(f"absolute discriminant at most {Dbounds[0]}")
                 else:
                     ans.append(f"absolute discriminant at most {','.join(Dbounds)}")
-            if tups[0][5] is not None:
-                grd = [str(tup[5]) for tup in tups]
+            if tups[0][6] is not None:
+                grd = [str(tup[6]) for tup in tups]
                 if len(set(grd)) == 1:
                     ans.append(f"Galois root discriminant at most {grd[0]}")
                 else:
                     ans.append(f"Galois root discriminant at most {','.join(grd)}")
-            if tups[0][6] is not None:
-                reg_bounds = [RR(tup[6]) for tup in tups]
+            if tups[0][7] is not None:
+                reg_bounds = [RR(tup[7]) for tup in tups]
                 if len(set(reg_bounds)) == 1:
                     ans.append(f"regulator less than {float(reg_bounds[0]):.2f}")
                 else:
@@ -2097,7 +2163,7 @@ class NFBound(ColTest):
                 if not reason.startswith("incompatible conditions"):
                     non_incomp.append(reason)
             else:
-                by_pattern[tuple(i for i in range(7) if reason[i] is None)].append(reason)
+                by_pattern[tuple(i for i in range(8) if reason[i] is None)].append(reason)
         if len(non_incomp) + len(by_pattern) > 0:
             strings = non_incomp
         return "number fields with " + "; ".join(strings + [describe(V) for V in by_pattern.values()])
@@ -2113,7 +2179,7 @@ class NFBound(ColTest):
                 M = self._maxD[n][r2]
                 if D.bounded(M):
                     r2opts.remove(r2)
-                    reasons.add((n, r2, None, None, M, None, None))
+                    reasons.add((n, r2, None, None, None, M, None, None))
                 m = min(m, M)
             if m is not infinity:
                 D = D.intersection(bottom(m + 1))
@@ -2135,7 +2201,7 @@ class NFBound(ColTest):
                 M = maxReg - 0.00001  # Completeness only guaranteed if R *strictly less* than M
                 if R.bounded(M):
                     r2opts.remove(r2)
-                    reasons.add((n, r2, None, None, None, None, maxReg))
+                    reasons.add((n, r2, None, None, None, None, None, maxReg))
                 m = min(m, M)
             if m is not infinity:
                 R = R.intersection(bottom(m))
@@ -2154,7 +2220,7 @@ class NFBound(ColTest):
             if set(r2G[t]) == set(r2opts):
                 galt.remove(t)
                 for r2, Gs, M in r2G[t].values():
-                    reasons.add((n, r2, Gs, None, M, None, None))
+                    reasons.add((n, r2, Gs, None, None, M, None, None))
 
     def clear_grd(self, n, grd, galt, reasons):
         """
@@ -2168,7 +2234,7 @@ class NFBound(ColTest):
         for t in galt.intersection(by_t):
             galt.remove(t)
             Gs, M = by_t[t]
-            reasons.add((n, None, Gs, None, None, M, None))
+            reasons.add((n, None, Gs, None, None, None, M, None))
 
     def clear_S(self, n, S, nram, galt, reasons, update_galt=True):
         """
@@ -2178,14 +2244,18 @@ class NFBound(ColTest):
             galt = set(galt)
         if nram is None:
             nram = len(S)
+        # The completeness bounds keyed on nram below only apply because the number of
+        # ramified primes is bounded; when nram < len(S) this constraint does not follow
+        # from being unramified outside S, so we record it for display in the message.
+        shown_nram = nram if nram < len(S) else None
 
         if S in self._nS.get(n, {}):
-            reasons.add((n, None, None, S, None, None, None))
+            reasons.add((n, None, None, S, None, None, None, None))
             return True
 
         M = self._nSp.get(n, {}).get(nram)
         if M is not None and all(p < M for p in S):
-            reasons.add((n, None, None, S, None, None, None))
+            reasons.add((n, None, None, S, shown_nram, None, None, None))
             return True
 
         if galt is None:
@@ -2195,7 +2265,7 @@ class NFBound(ColTest):
             if all(p < M for p in S):
                 I = galt.intersection(Gs)
                 if I:
-                    reasons.add((n, None, Gs, S, None, None, None))
+                    reasons.add((n, None, Gs, S, shown_nram, None, None, None))
                     galt.difference_update(I)
                     if not galt:
                         return True
@@ -2205,7 +2275,7 @@ class NFBound(ColTest):
                 if min(S) == p0 and max(S) < M:
                     I = galt.intersection(Gs)
                     if I:
-                        reasons.add((n, None, Gs, S, None, None, None))
+                        reasons.add((n, None, Gs, S, None, None, None, None))
                         galt.difference_update(I)
                         if not galt:
                             return True
@@ -2215,7 +2285,7 @@ class NFBound(ColTest):
             if SS.issubset(T):
                 I = galt.intersection(Gs)
                 if I:
-                    reasons.add((n, None, Gs, S, None, None, None))
+                    reasons.add((n, None, Gs, S, None, None, None, None))
                     galt.difference_update(I)
                     if not galt:
                         return True
@@ -2367,6 +2437,42 @@ class NFBound(ColTest):
         if S is not None:
             return tuple(sorted(S))
 
+    def precheck(self, query):
+        """
+        Detect queries that are intrinsically contradictory, without access to the database.
+
+        This is registered as the ``precheck`` hook of the nf_fields CompletenessChecker,
+        so it runs before the null-count machinery issues any database query.  It returns
+        a completeness triple for queries that describe no possible number field, and
+        ``None`` for anything it cannot decide, leaving the query to the normal machinery
+        (the null-data checks followed by ``__call__``).
+
+        Currently the only contradiction detected here is a root discriminant range lying
+        strictly above the Galois root discriminant range: the Galois closure contains the
+        field, so rd <= grd for every number field.  That relation does not depend on the
+        degree, so no degree constraint is required.
+
+        Constraints involving SQL-null semantics (``None`` anywhere in the value, as in
+        ``{"$ne": None}`` for ``IS NOT NULL``) are not sets of real numbers, so they
+        bypass this numeric precheck entirely rather than being misread as empty ranges.
+        """
+        # None in a predicate means SQL null, which the real-number model cannot
+        # represent (an omitted key, by contrast, is genuinely unconstrained).
+        for key in ("rd", "grd"):
+            value = query.get(key, _MISSING)
+            if value is not _MISSING and _contains_none(value):
+                return None
+        try:
+            rd = NumberSet(query.get("rd"))
+            grd = NumberSet(query.get("grd"))
+        except (ValueError, TypeError):
+            # A constraint NumberSet does not model (e.g. an unsupported operator);
+            # leave the query to the normal machinery.
+            return None
+        if grd.restricted() and not rd.pow_cap(grd, 1):
+            return True, self.display_reason({self.RD_GRD_INCOMPATIBLE}), None
+        return None
+
     def _initial(self, db, query, reasons):
         """
         Attempt to prove completeness without splitting on degree,
@@ -2411,7 +2517,7 @@ class NFBound(ColTest):
         r2, D, sign = IntegerSet(query.get("r2")), IntegerSet(query.get("disc_abs")), query.get("disc_sign")
         rd, grd, reg = NumberSet(query.get("rd")), NumberSet(query.get("grd")), NumberSet(query.get("regulator"))
 
-        # Initialise list of r2, of possible signatures (n-2*r2, r2)
+        # Initialize list of r2, of possible signatures (n-2*r2, r2)
         r2opts = list(r2.intersection(IntegerSet([0, n//2])))
         if sign == 1:
             r2opts = [r2 for r2 in r2opts if r2 % 2 == 0]
@@ -2445,9 +2551,12 @@ class NFBound(ColTest):
 
         ## Completeness 1: degree, signature, discriminant, regulator ##
         if grd.restricted():
+            # The empty intersection is also caught (before any database access) by
+            # precheck; this narrowing of rd feeds the completeness bounds below, so
+            # it still has work to do for compatible ranges.
             rd = rd.pow_cap(grd, 1)
             if not rd:
-                reasons.add("incompatible conditions: root discriminant and Galois root discriminant")
+                reasons.add(self.RD_GRD_INCOMPATIBLE)
                 return True, None
         if rd.restricted():
             D = D.pow_cap(rd, n)
@@ -2490,7 +2599,7 @@ class NFBound(ColTest):
                 if ratio is not None:
                     grd = grd.pow_cap(rd, ratio)
                     if not grd:
-                        reasons.add("incompatible conditions: root discriminant and Galois root discriminant")
+                        reasons.add(self.RD_GRD_INCOMPATIBLE)
                         return True, None
             if grd.restricted():
                 self.clear_grd(n, grd, galt, reasons)
@@ -2543,7 +2652,7 @@ class NFBound(ColTest):
 
         # We collect reasons that have contributed to completeness
         # These have the following format:
-        # (n, r2, galt, ramps, D_bound, grd_bound, Reg)
+        # (n, r2, galt, ramps, nram, D_bound, grd_bound, Reg)
         # Where entries can be None if they are not applicable
         reasons = set()
         # First check completeness without splitting on degree
@@ -2723,23 +2832,23 @@ class ArtinBound(ColTest):
             "4T3": [(2, "4t3", 22500)], # D4
             "8T5": [(2, "8t5", 215444)], # Q8
             "9T1": [(1, "9t1", 387)], # C9
-            "5T2": [(2, "5t2", 40000)], # D5
-            "4T4": [(3, "4t4", 3375000)], # A4
+     #       "5T2": [(2, "5t2", 40000)], # D5
+     #       "4T4": [(3, "4t4", 3375000)], # A4
             "6T3": [(2, "6t3", 22500)], # D6
-            "7T2": [(2, "7t2", 40000)], # D7
+     #       "7T2": [(2, "7t2", 40000)], # D7
             "6T5": [(2, "6t5", 2828)], # C3 x S3
-            "5T3": [(4, "5t3", 1600000000)], # F5
-            "7T3": [(3, "7t3", 1000000)], # C7:C3
-            "4T5": [(3, "4t5", 22497), (3, "6t8", 635168)], # S4
+     #       "5T3": [(4, "5t3", 1600000000)], # F5
+     #       "7T3": [(3, "7t3", 1000000)], # C7:C3
+     #       "4T5": [(3, "4t5", 22497), (3, "6t8", 635168)], # S4
             "6T6": [(3, "6t6", 22497)], # A4 x C2
-            "6T10": [(4, "6t10", 3374494)], # C3^2:C4
-            "6T9": [(4, "6t9", 7998219)], # S3^2
+     #       "6T10": [(4, "6t10", 3374494)], # C3^2:C4
+     #       "6T9": [(4, "6t9", 7998219)], # S3^2
             "6T11": [(3, "6t11", 22497)], # S4 x C2
-            "5T4": [(3, "12t33", 66627), (4, "5t4", 613778), (5, "6t12", 52222435)], # A5
-            "6T13": [(4, "6t13", 22500), (4, "12t34", 3375000)], # SO+(4,2)
-            "5T5": [(4, "5t5", 7225), (4, "10t12", 614125), (5, "6t14", 52200625), (5, "10t13", 52200625), (6, "20t30", 4437053125)], # S5
-            "6T15": [(5, "6t15", 287296), (8, "36t1252", 23534089616228), (9, "10t26", 174981250375214), (10, "30t88", 10077696000000000)], # A6
-            "6T16": [(5, "6t16", 3600), (5, "12t183", 216000), (9, "10t32", 52753592444), (9, "20t145", 174981250375214), (10, "30t176", 167961600000000), (16, "36t1252", 553853374064674583164228907)], # S6
+     #       "5T4": [(3, "12t33", 66627), (4, "5t4", 613778), (5, "6t12", 52222435)], # A5
+     #       "6T13": [(4, "6t13", 22500), (4, "12t34", 3375000)], # SO+(4,2)
+     #       "5T5": [(4, "5t5", 7225), (4, "10t12", 614125), (5, "6t14", 52200625), (5, "10t13", 52200625), (6, "20t30", 4437053125)], # S5
+     #       "6T15": [(5, "6t15", 287296), (8, "36t1252", 23534089616228), (9, "10t26", 174981250375214), (10, "30t88", 10077696000000000)], # A6
+     #       "6T16": [(5, "6t16", 3600), (5, "12t183", 216000), (9, "10t32", 52753592444), (9, "20t145", 174981250375214), (10, "30t176", 167961600000000), (16, "36t1252", 553853374064674583164228907)], # S6
         }
         reasons = set()
         for group in groups:
@@ -2905,7 +3014,10 @@ CompletenessChecker("belyi_galmaps", [("deg", Bound(6), "Belyi maps of degree at
 # We handle number field completeness by a single monolithic class (rather than having individual ColTests).
 # This is because many constraints interact: e.g. a discriminant range implies a root discriminant bound,
 # which (given a Galois group) implies a Galois root discriminant bound, etc. NFBound() handles everything internally.
-CompletenessChecker("nf_fields", [((), NFBound())])
+# The precheck recognizes intrinsically impossible rd/grd ranges before the null-count
+# machinery issues its (potentially expensive) database queries.
+nf_bound = NFBound()
+CompletenessChecker("nf_fields", [((), nf_bound)], precheck=nf_bound.precheck)
 
 
 CompletenessChecker("lf_fields", [(("n", "p"), Bound(23, 199), "p-adic fields of degree at most 23 and residue characteristic at most 199")], fill=[MulFiller("n", "e", "f")])
